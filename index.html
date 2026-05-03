@@ -24,7 +24,7 @@
       <option value="breeding-stallion">Breeding — Stallion</option>
     </select>
     <button id="btnWeights" class="btn ghost" title="Adjust scoring weights">⚖ Weights</button>
-  </div>
+      <button id="btnAbout" class="btn ghost about-btn" title="About this app">? Help</button>
 </header>
 
 <nav class="tabs">
@@ -411,6 +411,93 @@
 
 <!-- Click-popover for ⓘ buttons -->
 <div id="infoPopover" class="info-popover hidden"></div>
+
+<!-- ABOUT / README MODAL -->
+<div id="aboutModal" class="modal hidden">
+  <div class="modal-body about-modal-body">
+    <div class="about-header">
+      <span class="logo">🐎</span>
+      <div>
+        <h2>Horse Selector</h2>
+        <p class="about-sub">Auction Buying &amp; Breeding Evaluation Tool</p>
+      </div>
+      <button class="btn ghost about-close" id="btnCloseAbout">✕ Close</button>
+    </div>
+
+    <div class="about-content">
+
+      <p>A standalone, browser-based decision tool for evaluating racehorses at auction or for
+      breeding selection. No installation, no account, no server — data saved locally in your browser.</p>
+
+      <div class="about-modes">
+        <div class="about-mode-card">
+          <div class="about-mode-icon">🏷️</div>
+          <strong>Auction Buy</strong>
+          <p>Score a yearling, weanling, or racing prospect before bidding</p>
+        </div>
+        <div class="about-mode-card">
+          <div class="about-mode-icon">🐴</div>
+          <strong>Breeding — Mare</strong>
+          <p>Evaluate produce record, fertility, and pedigree for pairing</p>
+        </div>
+        <div class="about-mode-card">
+          <div class="about-mode-icon">⭐</div>
+          <strong>Breeding — Stallion</strong>
+          <p>Compare by fee, progeny stats, and nick with your mares</p>
+        </div>
+      </div>
+
+      <h3>Scoring Categories</h3>
+      <table class="about-table">
+        <thead><tr><th>Category</th><th>Auction Weight</th><th>What it measures</th></tr></thead>
+        <tbody>
+          <tr><td>Pedigree</td><td>~30%</td><td>Sire AEI, dam produce, black-type proximity, nicking grade, dosage, inbreeding</td></tr>
+          <tr><td>Conformation</td><td>~22%</td><td>10 structural traits rated 1–10 (balance, shoulder, hip, cannon, knees, pasterns, hooves, neck, topline, walk)</td></tr>
+          <tr><td>Veterinary</td><td>~15%</td><td>Repository X-rays, throat scope grade, heart, wind, eyes</td></tr>
+          <tr><td>Performance</td><td>~8%</td><td>Starts/wins/places, earnings, Beyer/Timeform speed figure, class level, soundness</td></tr>
+          <tr><td>Auction / Price</td><td>~10%</td><td>Reserve vs market estimate (generates Value Score), consignor reputation</td></tr>
+          <tr><td>Physical</td><td>~5%</td><td>Height, girth, cannon circumference vs ideal ranges</td></tr>
+          <tr><td>Temperament</td><td>~5%</td><td>Attitude, trainability</td></tr>
+          <tr><td>Foaling Date</td><td>~5%</td><td>Jan–Mar foals favored (universal Jan 1 birthday rule)</td></tr>
+          <tr><td>Breeding</td><td>0% (auction)</td><td>Mare produce record / stallion progeny stats (weighted higher in breeding modes)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Key Features</h3>
+      <ul class="about-features">
+        <li><strong>Real Horse Presets</strong> — Load verified public-record data for 22 famous horses (Secretariat, Frankel, Winx, etc.) with one click</li>
+        <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
+        <li><strong>Value Score</strong> — Overall Score ÷ price, surfacing quality below market price</li>
+        <li><strong>Side-by-side Compare</strong> — Select 2–4 horses; best/worst values highlighted automatically</li>
+        <li><strong>CSV Export</strong> — Spreadsheet-ready export including all sub-scores for Excel or Google Sheets</li>
+        <li><strong>JSON Backup</strong> — Full backup and restore of all records</li>
+        <li><strong>Custom Weights</strong> — Adjust how much each category counts per evaluation mode (⚖ Weights button)</li>
+        <li><strong>Selection Guide tab</strong> — Built-in reference explaining every factor and the research behind it</li>
+      </ul>
+
+      <h3>Data &amp; Privacy</h3>
+      <p>All data is stored in your <strong>browser's localStorage</strong>. Nothing is sent to any server.
+      Use <em>Export JSON</em> regularly as a backup — clearing browser data will erase saved horses.</p>
+
+      <h3>Preset Data Sources</h3>
+      <p>Preset horses use <strong>public-record data only</strong>: Jockey Club, Weatherbys, Equibase,
+      Racing Post, BHA, and publicly advertised stud farm fee schedules.
+      Conformation, vet findings, and temperament are intentionally blank — those require in-person evaluation.</p>
+
+      <div class="about-disclaimer">
+        ⚠️ This tool is a structured decision aid, not a substitute for a qualified bloodstock agent
+        and veterinarian. Always conduct an in-person inspection and independent veterinary review
+        before bidding at auction.
+      </div>
+
+      <div class="about-footer">
+        Built with vanilla HTML, CSS &amp; JavaScript — no frameworks, no dependencies, no server.
+        <a href="https://github.com/tgilbert14/HorseProject" target="_blank" rel="noopener">View source on GitHub ↗</a>
+      </div>
+
+    </div>
+  </div>
+</div>
 
 <script src="presets.js"></script>
 <script src="app.js"></script>

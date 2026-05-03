@@ -671,6 +671,21 @@ function openWeights() {
   weightsModal.classList.remove('hidden');
 }
 
+// ---------- About modal ----------
+(function initAbout() {
+  const modal = document.getElementById('aboutModal');
+  document.getElementById('btnAbout').addEventListener('click', () =>
+    modal.classList.remove('hidden'));
+  document.getElementById('btnCloseAbout').addEventListener('click', () =>
+    modal.classList.add('hidden'));
+  modal.addEventListener('click', e => {
+    if (e.target === modal) modal.classList.add('hidden');
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') modal.classList.add('hidden');
+  });
+})();
+
 // ---------- Init ----------
 document.getElementById('countSaved').textContent = loadHorses().length;
 updateLiveScore();
