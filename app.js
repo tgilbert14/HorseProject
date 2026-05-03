@@ -671,6 +671,26 @@ function openWeights() {
   weightsModal.classList.remove('hidden');
 }
 
+// ---------- Theme toggle (light / dark) ----------
+(function initTheme() {
+  const btn = document.getElementById('btnTheme');
+  // Respect saved preference; fall back to OS preference
+  const saved = localStorage.getItem('theme');
+  const preferLight = saved
+    ? saved === 'light'
+    : window.matchMedia('(prefers-color-scheme: light)').matches;
+
+  function applyTheme(light) {
+    document.body.classList.toggle('light', light);
+    btn.textContent = light ? '🌙 Dark Mode' : '☀ Light Mode';
+    localStorage.setItem('theme', light ? 'light' : 'dark');
+  }
+
+  applyTheme(preferLight);
+  btn.addEventListener('click', () =>
+    applyTheme(!document.body.classList.contains('light')));
+})();
+
 // ---------- About modal ----------
 (function initAbout() {
   const modal = document.getElementById('aboutModal');
