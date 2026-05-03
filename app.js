@@ -230,6 +230,82 @@ function scoreFoalDate(h) {
 
 const avg = (arr) => arr.reduce((a,b) => a+b, 0) / arr.length;
 
+const PILLAR_KEYS = [
+  'pillarGenetics',
+  'pillarSoundness',
+  'pillarPerformance',
+  'pillarValue',
+  'pillarMind'
+];
+
+function avgNonNull(values) {
+  const kept = values.filter(v => v != null);
+  return kept.length ? avg(kept) : null;
+}
+
+function toRange10(v100) {
+  if (v100 == null) return null;
+  return clamp(v100 / 10, 1, 10);
+}
+
+function decisionLabel(score) {
+  if (score == null) return { text: 'Needs more data', cls: 'decision-wait' };
+  if (score >= 80) return { text: 'BUY', cls: 'decision-buy' };
+  if (score >= 68) return { text: 'SHORTLIST', cls: 'decision-shortlist' };
+  return { text: 'PASS', cls: 'decision-pass' };
+}
+
+function computeFivePillars(h, mode) {
+  const cat = {
+    pedigree: scorePedigree(h),
+    conformation: scoreConformation(h),
+    veterinary: scoreVeterinary(h),
+    physical: scorePhysical(h),
+    performance: scorePerformance(h),
+    auction: scoreAuction(h),
+    breeding: scoreBreeding(h, mode),
+    temperament: scoreTemperament(h),
+    foalDate: scoreFoalDate(h)
+  };
+
+  // Derived scores from existing model if user did not manually set pillar sliders.
+  const derived = {
+    pillarGenetics: avgNonNull([cat.pedigree, mode.startsWith('breeding') ? cat.breeding : null]),
+    pillarSoundness: avgNonNull([cat.conformation, cat.veterinary, cat.physical]),
+    pillarPerformance: avgNonNull([cat.performance, mode.startsWith('breeding') ? cat.breeding : null]),
+    pillarValue: avgNonNull([cat.auction, valueScore(h, mode) == null ? null : clamp(valueScore(h, mode) * 8, 0, 100)]),
+    pillarMind: avgNonNull([cat.temperament, cat.foalDate])
+  };
+
+  const pillars = {
+    pillarGenetics: h.pillarGenetics != null ? clamp(h.pillarGenetics * 10, 0, 100) : derived.pillarGenetics,
+    pillarSoundness: h.pillarSoundness != null ? clamp(h.pillarSoundness * 10, 0, 100) : derived.pillarSoundness,
+    pillarPerformance: h.pillarPerformance != null ? clamp(h.pillarPerformance * 10, 0, 100) : derived.pillarPerformance,
+    pillarValue: h.pillarValue != null ? clamp(h.pillarValue * 10, 0, 100) : derived.pillarValue,
+    pillarMind: h.pillarMind != null ? clamp(h.pillarMind * 10, 0, 100) : derived.pillarMind
+  };
+
+  // Weighted for buy decisions.
+  const w = {
+    pillarGenetics: 30,
+    pillarSoundness: 25,
+    pillarPerformance: 20,
+    pillarValue: 15,
+    pillarMind: 10
+  };
+  let sum = 0;
+  let total = 0;
+  PILLAR_KEYS.forEach(k => {
+    if (pillars[k] != null) {
+      sum += pillars[k] * w[k];
+      total += w[k];
+    }
+  });
+  const score = total ? Math.round(sum / total) : null;
+  const decision = decisionLabel(score);
+  return { score, decision, pillars };
+}
+
 // ---------- Overall scoring ----------
 function computeScores(h, mode) {
   const cat = {
@@ -282,7 +358,8 @@ function readForm() {
       'aReserve','aMaxBid','aMarketEst','aConsignor','aVetCost',
       'bMareAge','bFoalsProduced','bWinnersProduced','bBTProduced','bFertility',
       'bStudFee','bBookSize','bPctWinners','bPctSW','bProven','bCross',
-      'temperament'
+      'temperament',
+      'pillarGenetics','pillarSoundness','pillarPerformance','pillarValue','pillarMind'
     ]);
     if (numericFields.has(k)) {
       const n = num(v);
@@ -316,6 +393,16 @@ function updateLiveScore() {
   const s = computeScores(h, currentMode());
   document.getElementById('liveScore').textContent =
     s.overall || '—';
+
+  const p = computeFivePillars(h, currentMode());
+  const pillarScoreEl = document.getElementById('pillarScore');
+  const pillarDecisionEl = document.getElementById('pillarDecision');
+  if (pillarScoreEl) pillarScoreEl.textContent = p.score == null ? '—' : p.score;
+  if (pillarDecisionEl) {
+    pillarDecisionEl.textContent = p.decision.text;
+    pillarDecisionEl.className = `decision ${p.decision.cls}`;
+  }
+  renderBenchmarkTable(h);
 }
 
 form.addEventListener('submit', e => {
@@ -348,6 +435,7 @@ document.getElementById('btnReset').addEventListener('click', () => {
     if (r.nextElementSibling) r.nextElementSibling.textContent = '6';
   });
   updateLiveScore();
+  renderBenchmarkTable(readForm());
 });
 
 document.getElementById('btnQuickSave').addEventListener('click', () => {
@@ -420,6 +508,7 @@ function renderList() {
   }
 
   list.innerHTML = items.map(({ h, s, vs }) => {
+    const p = computeFivePillars(h, mode);
     const color = s.overall >= 75 ? 'var(--good)' :
                   s.overall >= 55 ? 'var(--warn)' : 'var(--bad)';
     const ped = [h.sire, h.dam, h.damsire].filter(Boolean).join(' × ') || '—';
@@ -440,6 +529,7 @@ function renderList() {
           ${h.venue ? '· ' + escapeHtml(h.venue) : ''}
         </div>
         <div class="ped"><em>By</em> ${escapeHtml(ped)}</div>
+        ${p.score == null ? '' : `<div class="meta">5-pillar: <strong>${p.score}</strong> · ${p.decision.text}</div>`}
         ${h.aReserve ? `<div class="price">${fmtUSD(h.aReserve)}${vs ? ` · value ${vs}` : ''}</div>` : ''}
         <div class="breakdown">${breakdown}</div>
         <div class="actions">
@@ -481,6 +571,67 @@ window.deleteHorse = function (id) {
   saveHorses(loadHorses().filter(x => x.id !== id));
   renderList();
 };
+
+function benchmarkFilterMatch(h, filter) {
+  if (filter === 'all') return true;
+  const valueBuy = h.aReserve != null && h.pEarnings != null && h.aReserve > 0 && (h.pEarnings / h.aReserve) >= 8;
+  if (filter === 'value') return valueBuy;
+  if (filter === 'elite') return (h.pClass || 0) >= 5 || (h.pWins || 0) >= 10;
+  return true;
+}
+
+function renderBenchmarkTable(currentHorse) {
+  const out = document.getElementById('benchmarkTable');
+  const filterEl = document.getElementById('benchmarkFilter');
+  if (!out || typeof HORSE_PRESETS === 'undefined') return;
+
+  const filter = (filterEl && filterEl.value) || 'all';
+  const mode = currentMode();
+
+  const rows = HORSE_PRESETS
+    .filter(h => benchmarkFilterMatch(h, filter))
+    .map(h => {
+      const p = computeFivePillars(h, mode);
+      return { name: h.name, p };
+    })
+    .filter(x => x.p.score != null)
+    .sort((a, b) => b.p.score - a.p.score)
+    .slice(0, 8);
+
+  const current = currentHorse && Object.keys(currentHorse).length
+    ? { name: currentHorse.name || 'Current horse', p: computeFivePillars(currentHorse, mode) }
+    : null;
+
+  const tr = (name, p, cls = '') => `<tr class="${cls}">
+      <td>${escapeHtml(name)}</td>
+      <td>${toRange10(p.pillars.pillarGenetics)?.toFixed(1) ?? '—'}</td>
+      <td>${toRange10(p.pillars.pillarSoundness)?.toFixed(1) ?? '—'}</td>
+      <td>${toRange10(p.pillars.pillarPerformance)?.toFixed(1) ?? '—'}</td>
+      <td>${toRange10(p.pillars.pillarValue)?.toFixed(1) ?? '—'}</td>
+      <td>${toRange10(p.pillars.pillarMind)?.toFixed(1) ?? '—'}</td>
+      <td>${p.score == null ? '—' : p.score}</td>
+      <td>${p.decision.text}</td>
+    </tr>`;
+
+  out.innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Horse</th>
+        <th>Genetics</th>
+        <th>Soundness</th>
+        <th>Performance</th>
+        <th>Value</th>
+        <th>Mind</th>
+        <th>Score</th>
+        <th>Decision</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${current ? tr(current.name, current.p, 'current-row') : ''}
+      ${rows.map(r => tr(r.name, r.p)).join('')}
+    </tbody>
+  </table>`;
+}
 
 // ---------- Compare view ----------
 function renderCompare() {
@@ -747,6 +898,11 @@ function openWeights() {
 document.getElementById('countSaved').textContent = loadHorses().length;
 updateLiveScore();
 
+const benchmarkFilter = document.getElementById('benchmarkFilter');
+if (benchmarkFilter) {
+  benchmarkFilter.addEventListener('change', () => renderBenchmarkTable(readForm()));
+}
+
 // ---------- Preset loader ----------
 (function initPresets() {
   if (typeof HORSE_PRESETS === 'undefined') return;
@@ -771,7 +927,10 @@ updateLiveScore();
     updateLiveScore();
     // Scroll to top of form
     document.getElementById('horseForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    renderBenchmarkTable(readForm());
   });
+
+  renderBenchmarkTable(readForm());
 })();
 
 // ---------- Click-popover for info buttons ----------

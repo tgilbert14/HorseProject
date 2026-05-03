@@ -68,6 +68,47 @@
   <form id="horseForm" autocomplete="off">
 
     <div class="card">
+      <h2>Five Pillars Decision Framework <span class="hint">simple buy/no-buy model</span></h2>
+      <div class="grid pillars-grid">
+        <label>1) Genetics & Pedigree Fit
+          <input type="range" min="1" max="10" value="6" name="pillarGenetics" oninput="this.nextElementSibling.textContent=this.value"/>
+          <output>6</output>
+        </label>
+        <label>2) Physical Soundness
+          <input type="range" min="1" max="10" value="6" name="pillarSoundness" oninput="this.nextElementSibling.textContent=this.value"/>
+          <output>6</output>
+        </label>
+        <label>3) Performance Potential / Proof
+          <input type="range" min="1" max="10" value="6" name="pillarPerformance" oninput="this.nextElementSibling.textContent=this.value"/>
+          <output>6</output>
+        </label>
+        <label>4) Price-Value Edge
+          <input type="range" min="1" max="10" value="6" name="pillarValue" oninput="this.nextElementSibling.textContent=this.value"/>
+          <output>6</output>
+        </label>
+        <label>5) Mindset & Trainability
+          <input type="range" min="1" max="10" value="6" name="pillarMind" oninput="this.nextElementSibling.textContent=this.value"/>
+          <output>6</output>
+        </label>
+      </div>
+
+      <div class="pillar-summary">
+        <span>5-Pillar Score: <strong id="pillarScore">—</strong> / 100</span>
+        <span>Decision: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
+      </div>
+
+      <div class="benchmark-head">
+        <h3>Historical Benchmarks</h3>
+        <select id="benchmarkFilter">
+          <option value="all">All presets</option>
+          <option value="elite">Elite champions</option>
+          <option value="value">Value-buys</option>
+        </select>
+      </div>
+      <div id="benchmarkTable"></div>
+    </div>
+
+    <div class="card">
       <h2>Identity</h2>
       <div class="grid">
         <label>Name <input name="name" required placeholder="e.g. Hip 245 / Storm Approach" /></label>

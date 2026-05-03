@@ -100,6 +100,74 @@ main { padding: 22px; max-width: 1280px; margin: 0 auto; }
 .grid label { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); gap: 5px; }
 .grid label.full { grid-column: 1 / -1; }
 
+.pillars-grid {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+.pillar-summary {
+  margin-top: 12px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 14px;
+}
+.pillar-summary strong {
+  font-size: 18px;
+}
+.decision {
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.decision-buy {
+  color: var(--good);
+  border-color: var(--good);
+}
+.decision-shortlist {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+.decision-pass {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+.decision-wait {
+  color: var(--muted);
+}
+
+.benchmark-head {
+  margin-top: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.benchmark-head h3 {
+  margin: 0;
+}
+#benchmarkTable table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+#benchmarkTable th,
+#benchmarkTable td {
+  padding: 7px 9px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  text-align: left;
+}
+#benchmarkTable th {
+  font-size: 11px;
+  color: var(--accent);
+  text-transform: uppercase;
+  background: var(--panel-2);
+}
+#benchmarkTable tr.current-row td {
+  background: var(--panel-2);
+  font-weight: 600;
+}
+
 input, select, textarea {
   background: var(--panel-2); border: 1px solid var(--border);
   color: var(--text); padding: 10px 12px; border-radius: 6px;
