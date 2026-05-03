@@ -39,7 +39,7 @@ html, body {
   margin: 0; padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background: var(--bg); color: var(--text);
-  font-size: 15px; line-height: 1.55; /* slightly larger for readability */
+  font-size: 15px; line-height: 1.58;
   transition: background 0.2s, color 0.2s;
 }
 
@@ -52,8 +52,8 @@ html, body {
 }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand .logo { font-size: 36px; }
-.brand h1 { margin: 0; font-size: 20px; color: var(--accent); }
-.brand .tag { margin: 0; font-size: 12px; color: var(--muted); }
+.brand h1 { margin: 0; font-size: 23px; letter-spacing: 0.2px; color: var(--accent); }
+.brand .tag { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
 .mode-toggle {
   display: flex; align-items: center; gap: 6px;
   flex-wrap: wrap; flex-shrink: 1; min-width: 0;
@@ -76,13 +76,17 @@ body.simple-off #btnSimpleMode {
 }
 .tab {
   background: transparent; border: 0; color: var(--muted);
-  padding: 13px 20px; cursor: pointer; font-size: 15px;
+  padding: 14px 20px; cursor: pointer; font-size: 15px;
   border-bottom: 2px solid transparent;
 }
 .tab:hover { color: var(--text); }
-.tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: linear-gradient(180deg, transparent 60%, color-mix(in srgb, var(--accent) 16%, transparent) 100%);
+}
 
-main { padding: 22px; max-width: 1280px; margin: 0 auto; }
+main { padding: 24px; max-width: 1280px; margin: 0 auto; }
 
 .view { display: none; }
 .view.active { display: block; }
@@ -90,10 +94,11 @@ main { padding: 22px; max-width: 1280px; margin: 0 auto; }
 /* ===== Cards / form ===== */
 .card {
   background: var(--panel); border: 1px solid var(--border);
-  border-radius: 10px; padding: 18px 20px; margin-bottom: 16px;
+  border-radius: 14px; padding: 20px 22px; margin-bottom: 18px;
+  box-shadow: 0 8px 26px rgba(7, 23, 52, 0.18);
 }
 .card h2 {
-  margin: 0 0 14px; font-size: 15px; color: var(--accent);
+  margin: 0 0 14px; font-size: 17px; color: var(--accent);
   text-transform: uppercase; letter-spacing: 0.6px;
   border-bottom: 1px solid var(--border); padding-bottom: 8px;
 }
@@ -104,7 +109,7 @@ main { padding: 22px; max-width: 1280px; margin: 0 auto; }
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 .grid label { display: flex; flex-direction: column; font-size: 13px; color: var(--muted); gap: 5px; }
 .grid label.full { grid-column: 1 / -1; }
@@ -245,10 +250,13 @@ textarea { resize: vertical; }
 }
 .btn:hover { background: var(--border); }
 .btn.primary {
-  background: var(--accent); color: #1a1410; border-color: var(--accent);
+  background: var(--accent); color: #f8fbff; border-color: var(--accent);
   font-weight: 600;
 }
-.btn.primary:hover { background: #e0b25c; }
+.btn.primary:hover {
+  background: color-mix(in srgb, var(--accent) 85%, #8ab8ff 15%);
+  border-color: color-mix(in srgb, var(--accent) 85%, #8ab8ff 15%);
+}
 .btn.ghost { background: transparent; }
 .btn.danger { background: var(--bad); border-color: var(--bad); color: white; }
 .btn.danger:hover { background: #d83a30; }
@@ -275,8 +283,9 @@ textarea { resize: vertical; }
 }
 .horse-card {
   background: var(--panel); border: 1px solid var(--border);
-  border-radius: 10px; padding: 16px; position: relative;
+  border-radius: 12px; padding: 16px; position: relative;
   display: flex; flex-direction: column; gap: 10px;
+  box-shadow: 0 6px 18px rgba(7, 23, 52, 0.14);
 }
 .horse-card .score-badge {
   position: absolute; top: 12px; right: 12px;
@@ -393,15 +402,17 @@ body.light .update-banner {
 
 /* ===== Theme toggle button ===== */
 .theme-btn { font-size: 14px; white-space: nowrap; }
-body.light .theme-btn { background: #1a150e; color: #f4f1ec; border-color: #6b5f4e; }
-body.light .theme-btn:hover { background: #2a2218; }
+body.light .theme-btn { background: #203966; color: #f2f7ff; border-color: #203966; }
+body.light .theme-btn:hover { background: #152d54; }
 
 /* ===== About / Help modal ===== */
 .about-btn {
-  background: var(--accent); color: #1a1410 !important;
+  background: var(--accent); color: #f8fbff !important;
   border-color: var(--accent); font-weight: 700;
 }
-.about-btn:hover { background: #e0b25c; }
+.about-btn:hover {
+  background: color-mix(in srgb, var(--accent) 85%, #8ab8ff 15%);
+}
 
 .about-modal-body {
   max-width: 860px !important; width: 94vw !important;
@@ -497,7 +508,7 @@ button.info {
   align-items: center; justify-content: center;
   margin-left: 4px;
 }
-button.info:hover { background: var(--accent); color: #1a1410; }
+button.info:hover { background: var(--accent); color: #f8fbff; }
 
 .info-popover {
   position: absolute; z-index: 200;
@@ -527,4 +538,5 @@ button.info:hover { background: var(--accent); color: #1a1410; }
   .tabs { overflow-x: auto; }
   .tab { white-space: nowrap; padding: 11px 14px; font-size: 14px; }
   main { padding: 14px; }
+  .card { padding: 16px; border-radius: 12px; }
 }
