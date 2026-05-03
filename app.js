@@ -7,6 +7,7 @@ const APP_VERSION = '1.3.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY = 'horses';
 const WEIGHTS_KEY = (m) => `weights:${m}`;
+const SIMPLE_MODE_KEY = 'ui:simpleMode';
 
 // ---------- Default category weights per mode ----------
 const DEFAULT_WEIGHTS = {
@@ -877,6 +878,25 @@ function openWeights() {
   applyTheme(preferLight);
   btn.addEventListener('click', () =>
     applyTheme(!document.body.classList.contains('light')));
+})();
+
+// ---------- Simple mode toggle ----------
+(function initSimpleMode() {
+  const btn = document.getElementById('btnSimpleMode');
+  if (!btn) return;
+
+  const saved = localStorage.getItem(SIMPLE_MODE_KEY);
+  const startSimple = saved == null ? true : saved === 'on';
+
+  function applySimple(on) {
+    document.body.classList.toggle('simple-on', on);
+    document.body.classList.toggle('simple-off', !on);
+    btn.textContent = on ? 'Simple: ON' : 'Simple: OFF';
+    localStorage.setItem(SIMPLE_MODE_KEY, on ? 'on' : 'off');
+  }
+
+  applySimple(startSimple);
+  btn.addEventListener('click', () => applySimple(!document.body.classList.contains('simple-on')));
 })();
 
 // ---------- About modal ----------

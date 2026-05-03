@@ -23,6 +23,7 @@
       <option value="breeding-mare">Breeding — Mare</option>
       <option value="breeding-stallion">Breeding — Stallion</option>
     </select>
+    <button id="btnSimpleMode" class="btn ghost" title="Show only the 5-pillar workflow">Simple: ON</button>
     <button id="btnWeights" class="btn ghost">⚖ Weights</button>
     <button id="btnAbout" class="btn ghost about-btn">? Help</button>
     <button id="btnTheme" class="btn ghost theme-btn">☀ Light</button>
@@ -128,7 +129,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card advanced-card">
       <h2>Pedigree <span class="hint">most predictive single factor</span></h2>
       <div class="grid">
         <label>Sire <input name="sire" /></label>
@@ -167,7 +168,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card advanced-card">
       <h2>Conformation <span class="hint">rate 1 (poor) – 10 (exceptional)</span></h2>
       <div class="grid">
         <label>Overall Balance / Symmetry <input type="range" min="1" max="10" value="6" name="cBalance" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
@@ -183,7 +184,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card advanced-card">
       <h2>Physical Metrics</h2>
       <div class="grid">
         <label>Height (hands) <input type="number" name="height" step="0.1" placeholder="15.2 – 16.3" /></label>
@@ -193,7 +194,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card advanced-card">
       <h2>Veterinary</h2>
       <div class="grid">
         <label>Repository X-rays (OCD, chips, sesamoids)
@@ -235,7 +236,7 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="card advanced-card">
       <h2>Performance <span class="hint">if raced</span></h2>
       <div class="grid">
         <label>Starts <input type="number" name="pStarts" min="0" /></label>
@@ -280,7 +281,7 @@
       </div>
     </div>
 
-    <div class="card breeding-only">
+    <div class="card breeding-only advanced-card">
       <h2>Breeding — Mare-Specific</h2>
       <div class="grid">
         <label>Mare age <input type="number" name="bMareAge" min="0" /></label>
@@ -297,7 +298,7 @@
       </div>
     </div>
 
-    <div class="card breeding-only">
+    <div class="card breeding-only advanced-card">
       <h2>Breeding — Stallion-Specific</h2>
       <div class="grid">
         <label>Stud fee (USD) <input type="number" name="bStudFee" min="0" step="500" /></label>
