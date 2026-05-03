@@ -989,8 +989,44 @@ function openWeights() {
     localStorage.setItem(SIMPLE_MODE_KEY, on ? 'on' : 'off');
   }
 
+  window.setSimpleMode = applySimple;
+
   applySimple(startSimple);
   btn.addEventListener('click', () => applySimple(!document.body.classList.contains('simple-on')));
+})();
+
+// ---------- Auction fast entry ----------
+(function initAuctionFastEntry() {
+  const btn = document.getElementById('btnAuctionFast');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    // 1) Move app to auction mode.
+    modeSel.value = 'auction';
+    modeSel.dispatchEvent(new Event('change'));
+
+    // 2) Use strict verified mode for new-candidate buy decisions.
+    const scoreModeSel = document.getElementById('scoreMode');
+    if (scoreModeSel) {
+      scoreModeSel.value = 'strict';
+      localStorage.setItem(SCORE_MODE_KEY, 'strict');
+    }
+
+    // 3) Ensure simple five-pillar workflow is active.
+    if (typeof window.setSimpleMode === 'function') {
+      window.setSimpleMode(true);
+    }
+
+    switchView('form');
+    updateLiveScore();
+
+    // 4) Focus the first pillar for immediate scoring.
+    const firstPillar = document.querySelector('input[name="pillarGenetics"]');
+    if (firstPillar) {
+      firstPillar.focus();
+      firstPillar.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
 })();
 
 // ---------- About modal ----------
