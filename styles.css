@@ -4,6 +4,7 @@
   --panel: #111b2f;
   --panel-2: #1a2742;
   --border: #2f436b;
+  --border-strong: #426194;
   --text: #eaf2ff;
   --muted: #9bb0d1;
   --accent: #5aa0ff;
@@ -22,6 +23,7 @@ body.light {
   --panel: #ffffff;
   --panel-2: #e3eeff;
   --border: #bfd0f2;
+  --border-strong: #95b4ea;
   --text: #0f1c33;
   --muted: #4b6088;
   --accent: #1e5fcf;
@@ -41,12 +43,13 @@ html, body {
   background: var(--bg); color: var(--text);
   font-size: 15px; line-height: 1.58;
   transition: background 0.2s, color 0.2s;
+  overflow-x: hidden;
 }
 
 /* ===== Top bar ===== */
 .topbar {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 10px 18px; gap: 12px; flex-wrap: wrap;
+  padding: 10px 16px; gap: 12px; flex-wrap: wrap;
   background: linear-gradient(90deg, var(--topbar-bg1) 0%, var(--topbar-bg2) 100%);
   border-bottom: 2px solid var(--accent-2);
 }
@@ -72,7 +75,7 @@ body.simple-off #btnSimpleMode {
 /* ===== Tabs ===== */
 .tabs {
   display: flex; gap: 4px; padding: 0 22px;
-  background: var(--panel); border-bottom: 1px solid var(--border);
+  background: var(--panel); border-bottom: 1px solid var(--border-strong);
 }
 .tab {
   background: transparent; border: 0; color: var(--muted);
@@ -96,11 +99,25 @@ main { padding: 24px; max-width: 1280px; margin: 0 auto; }
   background: var(--panel); border: 1px solid var(--border);
   border-radius: 14px; padding: 20px 22px; margin-bottom: 18px;
   box-shadow: 0 8px 26px rgba(7, 23, 52, 0.18);
+  position: relative;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  border-top-left-radius: 14px;
+  border-top-right-radius: 14px;
+  background: linear-gradient(90deg, var(--accent) 0%, transparent 70%);
+  opacity: 0.55;
+  pointer-events: none;
 }
 .card h2 {
   margin: 0 0 14px; font-size: 17px; color: var(--accent);
   text-transform: uppercase; letter-spacing: 0.6px;
-  border-bottom: 1px solid var(--border); padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-strong); padding-bottom: 8px;
 }
 .card h3 { color: var(--accent); margin-top: 18px; }
 .hint { font-size: 12px; color: var(--muted); font-weight: normal; margin-left: 8px; text-transform: none; letter-spacing: 0; }
@@ -230,9 +247,12 @@ input, select, textarea {
   background: var(--panel-2); border: 1px solid var(--border);
   color: var(--text); padding: 10px 12px; border-radius: 6px;
   font-size: 15px; font-family: inherit;
+  width: 100%;
+  min-width: 0;
 }
 input:focus, select:focus, textarea:focus {
   outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent);
 }
 input[type="range"] { padding: 0; }
 output {
@@ -528,15 +548,70 @@ button.info:hover { background: var(--accent); color: #f8fbff; }
   transform: rotate(45deg);
 }
 
+/* Prevent horizontal cutoff for data-heavy sections on phone */
+#benchmarkTable,
+#compareTable {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+#benchmarkTable table,
+#compareTable table {
+  min-width: 740px;
+}
+
 @media (max-width: 860px) {
   .topbar { flex-direction: column; align-items: flex-start; padding: 12px 16px; }
   .mode-toggle { width: 100%; }
-  .mode-toggle select { flex: 1; min-width: 0; }
+  .mode-toggle > * { flex: 1 1 auto; }
+  .mode-toggle label { flex: 0 0 auto; }
+  .mode-toggle select { flex: 1 1 220px; min-width: 0; }
   .score-mode-row select { min-width: 0; width: 100%; }
+  .toolbar { flex-direction: column; }
+  .toolbar select { min-width: 0; }
 }
 @media (max-width: 700px) {
+  .brand h1 { font-size: 20px; }
+  .brand .logo { font-size: 30px; }
+  .brand .tag { font-size: 12px; }
+
   .tabs { overflow-x: auto; }
   .tab { white-space: nowrap; padding: 11px 14px; font-size: 14px; }
   main { padding: 14px; }
   .card { padding: 16px; border-radius: 12px; }
+
+  .preset-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .preset-row select { min-width: 0; }
+
+  .mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+  .mode-toggle label {
+    grid-column: 1 / -1;
+    margin-bottom: -2px;
+  }
+  .mode-toggle select {
+    grid-column: 1 / -1;
+  }
+  .mode-toggle .btn {
+    width: 100%;
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .pillar-summary {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  #benchmarkTable table,
+  #compareTable table {
+    min-width: 640px;
+  }
 }
