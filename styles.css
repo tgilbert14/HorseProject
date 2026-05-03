@@ -46,7 +46,7 @@ html, body {
 /* ===== Top bar ===== */
 .topbar {
   display: flex; justify-content: space-between; align-items: center;
-  padding: 14px 22px;
+  padding: 10px 18px; gap: 12px; flex-wrap: wrap;
   background: linear-gradient(90deg, var(--topbar-bg1) 0%, var(--topbar-bg2) 100%);
   border-bottom: 2px solid var(--accent-2);
 }
@@ -54,8 +54,11 @@ html, body {
 .brand .logo { font-size: 36px; }
 .brand h1 { margin: 0; font-size: 20px; color: var(--accent); }
 .brand .tag { margin: 0; font-size: 12px; color: var(--muted); }
-.mode-toggle { display: flex; align-items: center; gap: 8px; }
-.mode-toggle label { color: var(--muted); font-size: 13px; }
+.mode-toggle {
+  display: flex; align-items: center; gap: 6px;
+  flex-wrap: wrap; flex-shrink: 1; min-width: 0;
+}
+.mode-toggle label { color: var(--muted); font-size: 13px; white-space: nowrap; }
 
 /* ===== Tabs ===== */
 .tabs {
@@ -247,6 +250,21 @@ textarea { resize: vertical; }
 /* Hide breeding-only cards in auction mode */
 body.mode-auction .breeding-only { display: none; }
 
+/* ===== Update banner ===== */
+.update-banner {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 10px 22px;
+  background: #1a5e2a; color: #d4f5dc;
+  font-size: 14px; font-weight: 500;
+  border-bottom: 2px solid #3fb950;
+}
+body.light .update-banner {
+  background: #d4f5dc; color: #1a5e2a;
+  border-bottom-color: #1a7f37;
+}
+.update-banner.hidden { display: none; }
+.update-banner span { flex: 1; }
+
 /* ===== Theme toggle button ===== */
 .theme-btn { font-size: 14px; white-space: nowrap; }
 body.light .theme-btn { background: #1a150e; color: #f4f1ec; border-color: #6b5f4e; }
@@ -365,8 +383,13 @@ button.info:hover { background: var(--accent); color: #1a1410; }
   transform: rotate(45deg);
 }
 
+@media (max-width: 860px) {
+  .topbar { flex-direction: column; align-items: flex-start; padding: 12px 16px; }
+  .mode-toggle { width: 100%; }
+  .mode-toggle select { flex: 1; min-width: 0; }
+}
 @media (max-width: 700px) {
-  .topbar { flex-direction: column; gap: 12px; align-items: flex-start; }
   .tabs { overflow-x: auto; }
-  .tab { white-space: nowrap; }
+  .tab { white-space: nowrap; padding: 11px 14px; font-size: 14px; }
+  main { padding: 14px; }
 }

@@ -17,16 +17,24 @@
     </div>
   </div>
   <div class="mode-toggle">
-    <label>Evaluation Mode:</label>
+    <label>Mode:</label>
     <select id="mode">
       <option value="auction">Auction Buy</option>
       <option value="breeding-mare">Breeding — Mare</option>
       <option value="breeding-stallion">Breeding — Stallion</option>
     </select>
-    <button id="btnWeights" class="btn ghost" title="Adjust scoring weights">⚖ Weights</button>
-      <button id="btnAbout" class="btn ghost about-btn" title="About this app">? Help</button>
-      <button id="btnTheme" class="btn ghost theme-btn" title="Switch light/dark mode">☀ Light Mode</button>
+    <button id="btnWeights" class="btn ghost">⚖ Weights</button>
+    <button id="btnAbout" class="btn ghost about-btn">? Help</button>
+    <button id="btnTheme" class="btn ghost theme-btn">☀ Light</button>
+  </div>
 </header>
+
+<!-- Update notification banner -->
+<div id="updateBanner" class="update-banner hidden">
+  <span>🔄 A new version of Horse Selector is available.</span>
+  <button id="btnReload" class="btn primary">Update Now</button>
+  <button id="btnDismiss" class="btn ghost">Later</button>
+</div>
 
 <nav class="tabs">
   <button class="tab active" data-view="form">Add / Edit Horse</button>
@@ -502,5 +510,10 @@
 
 <script src="presets.js"></script>
 <script src="app.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+</script>
 </body>
 </html>

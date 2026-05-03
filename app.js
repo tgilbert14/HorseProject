@@ -3,6 +3,8 @@
              localStorage key 'weights:<mode>' (object)
 */
 
+const APP_VERSION = '1.3.0'; // bump this each release to trigger update prompt
+
 const STORAGE_KEY = 'horses';
 const WEIGHTS_KEY = (m) => `weights:${m}`;
 
@@ -671,6 +673,38 @@ function openWeights() {
   weightsModal.classList.remove('hidden');
 }
 
+// ---------- Update banner (service worker) ----------
+(function initUpdateBanner() {
+  const banner = document.getElementById('updateBanner');
+  let pendingWorker = null;
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // SW took control — a reload will load the new version
+      if (pendingWorker) window.location.reload();
+    });
+
+    navigator.serviceWorker.ready.then(reg => {
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            pendingWorker = newWorker;
+            banner.classList.remove('hidden');
+          }
+        });
+      });
+    });
+  }
+
+  document.getElementById('btnReload').addEventListener('click', () => {
+    if (pendingWorker) pendingWorker.postMessage({ type: 'SKIP_WAITING' });
+    else window.location.reload();
+  });
+  document.getElementById('btnDismiss').addEventListener('click', () =>
+    banner.classList.add('hidden'));
+})();
+
 // ---------- Theme toggle (light / dark) ----------
 (function initTheme() {
   const btn = document.getElementById('btnTheme');
@@ -680,7 +714,7 @@ function openWeights() {
 
   function applyTheme(light) {
     document.body.classList.toggle('light', light);
-    btn.textContent = light ? '🌙 Dark Mode' : '☀ Light Mode';
+    btn.textContent = light ? '🌙 Dark' : '☀ Light';
     localStorage.setItem('theme', light ? 'light' : 'dark');
   }
 
