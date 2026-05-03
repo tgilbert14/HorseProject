@@ -674,11 +674,9 @@ function openWeights() {
 // ---------- Theme toggle (light / dark) ----------
 (function initTheme() {
   const btn = document.getElementById('btnTheme');
-  // Respect saved preference; fall back to OS preference
+  // Respect saved preference; default to light mode
   const saved = localStorage.getItem('theme');
-  const preferLight = saved
-    ? saved === 'light'
-    : window.matchMedia('(prefers-color-scheme: light)').matches;
+  const preferLight = saved ? saved === 'light' : true;
 
   function applyTheme(light) {
     document.body.classList.toggle('light', light);
