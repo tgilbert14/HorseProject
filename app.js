@@ -8,6 +8,12 @@ const APP_VERSION = '1.3.1'; // bump this each release to trigger update prompt
 const STORAGE_KEY = 'horses';
 const WEIGHTS_KEY = (m) => `weights:${m}`;
 const SIMPLE_MODE_KEY = 'ui:simpleMode';
+const SCORE_MODE_KEY = 'ui:scoreMode';
+
+function currentScoreMode() {
+  const el = document.getElementById('scoreMode');
+  return el ? el.value : 'estimated';
+}
 
 // ---------- Default category weights per mode ----------
 const DEFAULT_WEIGHTS = {
@@ -272,7 +278,7 @@ function defaultIfNull(v, dflt) {
   return v == null ? dflt : v;
 }
 
-function computeFivePillars(h, mode) {
+function computeFivePillars(h, mode, scoreMode = currentScoreMode()) {
   const cat = {
     pedigree: scorePedigree(h),
     conformation: scoreConformation(h),
@@ -342,12 +348,22 @@ function computeFivePillars(h, mode) {
     ]), 55)
   };
 
+  const strictDerived = {
+    pillarGenetics: avgNonNull([cat.pedigree, mode.startsWith('breeding') ? cat.breeding : null]),
+    pillarSoundness: avgNonNull([cat.conformation, cat.veterinary, cat.physical]),
+    pillarPerformance: avgNonNull([cat.performance, mode.startsWith('breeding') ? cat.breeding : null]),
+    pillarValue: avgNonNull([cat.auction, valueFromVs]),
+    pillarMind: avgNonNull([cat.temperament, cat.foalDate])
+  };
+
+  const source = scoreMode === 'strict' ? strictDerived : derived;
+
   const pillars = {
-    pillarGenetics: h.pillarGenetics != null ? clamp(h.pillarGenetics * 10, 0, 100) : derived.pillarGenetics,
-    pillarSoundness: h.pillarSoundness != null ? clamp(h.pillarSoundness * 10, 0, 100) : derived.pillarSoundness,
-    pillarPerformance: h.pillarPerformance != null ? clamp(h.pillarPerformance * 10, 0, 100) : derived.pillarPerformance,
-    pillarValue: h.pillarValue != null ? clamp(h.pillarValue * 10, 0, 100) : derived.pillarValue,
-    pillarMind: h.pillarMind != null ? clamp(h.pillarMind * 10, 0, 100) : derived.pillarMind
+    pillarGenetics: h.pillarGenetics != null ? clamp(h.pillarGenetics * 10, 0, 100) : source.pillarGenetics,
+    pillarSoundness: h.pillarSoundness != null ? clamp(h.pillarSoundness * 10, 0, 100) : source.pillarSoundness,
+    pillarPerformance: h.pillarPerformance != null ? clamp(h.pillarPerformance * 10, 0, 100) : source.pillarPerformance,
+    pillarValue: h.pillarValue != null ? clamp(h.pillarValue * 10, 0, 100) : source.pillarValue,
+    pillarMind: h.pillarMind != null ? clamp(h.pillarMind * 10, 0, 100) : source.pillarMind
   };
 
   // Weighted for buy decisions.
@@ -374,7 +390,9 @@ function computeFivePillars(h, mode) {
     cat.pedigree, cat.conformation, cat.veterinary, cat.physical,
     cat.performance, cat.auction, cat.breeding, cat.temperament, cat.foalDate
   ].filter(v => v != null).length;
-  const confidence = clamp(Math.round((directSignals / 9) * 100), 35, 100);
+  const confidence = scoreMode === 'strict'
+    ? clamp(Math.round((directSignals / 9) * 100), 0, 100)
+    : clamp(Math.round((directSignals / 9) * 100), 35, 100);
 
   return { score, decision, pillars, confidence };
 }
@@ -467,14 +485,16 @@ function updateLiveScore() {
   document.getElementById('liveScore').textContent =
     s.overall || '—';
 
-  const p = computeFivePillars(h, currentMode());
+  const p = computeFivePillars(h, currentMode(), currentScoreMode());
   const pillarScoreEl = document.getElementById('pillarScore');
   const pillarDecisionEl = document.getElementById('pillarDecision');
+  const pillarConfidenceEl = document.getElementById('pillarConfidence');
   if (pillarScoreEl) pillarScoreEl.textContent = p.score == null ? '—' : p.score;
   if (pillarDecisionEl) {
     pillarDecisionEl.textContent = p.decision.text;
     pillarDecisionEl.className = `decision ${p.decision.cls}`;
   }
+  if (pillarConfidenceEl) pillarConfidenceEl.textContent = `${p.confidence}%`;
   renderBenchmarkTable(h);
 }
 
@@ -581,7 +601,7 @@ function renderList() {
   }
 
   list.innerHTML = items.map(({ h, s, vs }) => {
-    const p = computeFivePillars(h, mode);
+    const p = computeFivePillars(h, mode, currentScoreMode());
     const color = s.overall >= 75 ? 'var(--good)' :
                   s.overall >= 55 ? 'var(--warn)' : 'var(--bad)';
     const ped = [h.sire, h.dam, h.damsire].filter(Boolean).join(' × ') || '—';
@@ -664,7 +684,7 @@ function renderBenchmarkTable(currentHorse) {
   const rows = HORSE_PRESETS
     .filter(h => benchmarkFilterMatch(h, filter))
     .map(h => {
-      const p = computeFivePillars(h, mode);
+      const p = computeFivePillars(h, mode, currentScoreMode());
       return { name: h.name, p };
     })
     .filter(x => x.p.score != null)
@@ -672,7 +692,7 @@ function renderBenchmarkTable(currentHorse) {
     .slice(0, 8);
 
   const current = currentHorse && Object.keys(currentHorse).length
-    ? { name: currentHorse.name || 'Current horse', p: computeFivePillars(currentHorse, mode) }
+    ? { name: currentHorse.name || 'Current horse', p: computeFivePillars(currentHorse, mode, currentScoreMode()) }
     : null;
 
   const tr = (name, p, cls = '') => `<tr class="${cls}">
@@ -995,6 +1015,19 @@ updateLiveScore();
 const benchmarkFilter = document.getElementById('benchmarkFilter');
 if (benchmarkFilter) {
   benchmarkFilter.addEventListener('change', () => renderBenchmarkTable(readForm()));
+}
+
+const scoreModeSel = document.getElementById('scoreMode');
+if (scoreModeSel) {
+  const savedScoreMode = localStorage.getItem(SCORE_MODE_KEY);
+  scoreModeSel.value = (savedScoreMode === 'strict' || savedScoreMode === 'estimated')
+    ? savedScoreMode
+    : 'estimated';
+  scoreModeSel.addEventListener('change', () => {
+    localStorage.setItem(SCORE_MODE_KEY, scoreModeSel.value);
+    updateLiveScore();
+    renderList();
+  });
 }
 
 // ---------- Preset loader ----------

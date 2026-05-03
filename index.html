@@ -96,7 +96,57 @@
       <div class="pillar-summary">
         <span>5-Pillar Score: <strong id="pillarScore">—</strong> / 100</span>
         <span>Decision: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
+        <span>Confidence: <strong id="pillarConfidence">—</strong></span>
       </div>
+
+      <div class="score-mode-row">
+        <label for="scoreMode">Scoring mode:</label>
+        <select id="scoreMode">
+          <option value="estimated">Estimated (recommended for historical/public records)</option>
+          <option value="strict">Strict verified only (no inferred estimates)</option>
+        </select>
+      </div>
+
+      <details class="pillar-guide" open>
+        <summary>How to score each pillar (1–10)</summary>
+        <div class="pillar-guide-grid">
+          <div>
+            <h4>1) Genetics &amp; Pedigree Fit</h4>
+            <p><strong>9–10:</strong> elite sire/dam production, strong black-type family, proven nick</p>
+            <p><strong>7–8:</strong> good sire stats and productive female line</p>
+            <p><strong>5–6:</strong> average commercial pedigree, some positives</p>
+            <p><strong>1–4:</strong> weak production record or poor pedigree match</p>
+          </div>
+          <div>
+            <h4>2) Physical Soundness</h4>
+            <p><strong>9–10:</strong> clean vet, balanced frame, no significant structural concerns</p>
+            <p><strong>7–8:</strong> minor manageable findings only</p>
+            <p><strong>5–6:</strong> mixed conformation or moderate vet risk</p>
+            <p><strong>1–4:</strong> major red flags (wind/ortho/recurring soundness)</p>
+          </div>
+          <div>
+            <h4>3) Performance Potential / Proof</h4>
+            <p><strong>9–10:</strong> elite class/speed profile or proven top-level performer</p>
+            <p><strong>7–8:</strong> strong figures, consistent results, clear upside</p>
+            <p><strong>5–6:</strong> moderate profile, unclear ceiling</p>
+            <p><strong>1–4:</strong> limited ability shown, weak indicators</p>
+          </div>
+          <div>
+            <h4>4) Price-Value Edge</h4>
+            <p><strong>9–10:</strong> clear under-market opportunity, high upside per dollar</p>
+            <p><strong>7–8:</strong> fair price with some positive edge</p>
+            <p><strong>5–6:</strong> market-correct pricing, no major edge</p>
+            <p><strong>1–4:</strong> expensive for risk/quality profile</p>
+          </div>
+          <div>
+            <h4>5) Mindset &amp; Trainability</h4>
+            <p><strong>9–10:</strong> professional attitude, focused, highly trainable</p>
+            <p><strong>7–8:</strong> mostly good behavior, manageable quirks</p>
+            <p><strong>5–6:</strong> average attitude, inconsistent focus</p>
+            <p><strong>1–4:</strong> difficult temperament, reliability concerns</p>
+          </div>
+        </div>
+      </details>
 
       <div class="benchmark-head">
         <h3>Historical Benchmarks</h3>
@@ -439,6 +489,15 @@
       <li><strong>Mare</strong>: produce record &gt; her own race record. An older mare with multiple winners is more valuable than a young one with no foals.</li>
       <li><strong>Stallion</strong>: % stakes winners from runners is the cleanest quality metric; book size and stud fee indicate market belief.</li>
       <li><strong>Cross / nick</strong>: switch the mode toggle to a breeding mode and the cross/nick fields will be weighted heavily.</li>
+    </ul>
+
+    <h3>Five Pillars Workflow (Recommended)</h3>
+    <ul>
+      <li><strong>Score each pillar 1–10</strong> using the rubric in the Five Pillars card.</li>
+      <li><strong>Use Estimated mode</strong> when reviewing historical horses or candidates with incomplete private vet/conformation data.</li>
+      <li><strong>Use Strict verified mode</strong> when you only want scores built from direct entered evidence (no inferred estimates).</li>
+      <li><strong>Interpret outputs</strong>: BUY = strong candidate, SHORTLIST = re-inspect, PASS = risk/value mismatch.</li>
+      <li><strong>Watch Confidence %</strong>: low confidence means you need more direct inputs before final bid decisions.</li>
     </ul>
 
     <p class="disclaimer">This tool is a decision aid, not a substitute for a qualified bloodstock agent and veterinarian. Always vet in person before bidding.</p>
