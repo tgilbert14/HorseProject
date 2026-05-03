@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION = '1.3.0'; // bump this each release to trigger update prompt
+const APP_VERSION = '1.3.1'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY = 'horses';
 const WEIGHTS_KEY = (m) => `weights:${m}`;
@@ -256,6 +256,22 @@ function decisionLabel(score) {
   return { text: 'PASS', cls: 'decision-pass' };
 }
 
+function logMoneyScore(amount, floor = 20, factor = 18) {
+  if (amount == null || amount <= 0) return null;
+  return clamp(Math.log10(amount) * factor - floor, 0, 100);
+}
+
+function winRateScore(starts, wins, places) {
+  if (!starts || starts <= 0) return null;
+  const w = (wins || 0) / starts;
+  const p = ((wins || 0) + (places || 0)) / starts;
+  return clamp(w * 200 + p * 50, 0, 100);
+}
+
+function defaultIfNull(v, dflt) {
+  return v == null ? dflt : v;
+}
+
 function computeFivePillars(h, mode) {
   const cat = {
     pedigree: scorePedigree(h),
@@ -269,13 +285,61 @@ function computeFivePillars(h, mode) {
     foalDate: scoreFoalDate(h)
   };
 
-  // Derived scores from existing model if user did not manually set pillar sliders.
+  // Derived scores from existing model with public-data fallbacks so pillars are always populated.
+  const starts = h.pStarts || 0;
+  const wins = h.pWins || 0;
+  const places = h.pPlaces || 0;
+  const winPct = starts > 0 ? wins / starts : null;
+  const durabilityByStarts = starts > 0 ? clamp(45 + starts * 2.2, 45, 95) : null;
+  const classByPerformance = h.pClass != null ? [25, 45, 62, 78, 90, 98][h.pClass] : null;
+  const earningsScore = logMoneyScore(h.pEarnings, 12, 18);
+  const studFeeScore = logMoneyScore(h.bStudFee || h.sireFee, 15, 18);
+  const price = h.aReserve || h.aMarketEst || h.bStudFee || null;
+  const valueRatioScore = (h.aReserve && h.pEarnings)
+    ? clamp((h.pEarnings / h.aReserve) * 12, 0, 100)
+    : null;
+  const valueFromVs = valueScore(h, mode) == null ? null : clamp(valueScore(h, mode) * 8, 0, 100);
+  const consistencyScore = winPct == null ? null : clamp(45 + winPct * 55, 40, 100);
+
   const derived = {
-    pillarGenetics: avgNonNull([cat.pedigree, mode.startsWith('breeding') ? cat.breeding : null]),
-    pillarSoundness: avgNonNull([cat.conformation, cat.veterinary, cat.physical]),
-    pillarPerformance: avgNonNull([cat.performance, mode.startsWith('breeding') ? cat.breeding : null]),
-    pillarValue: avgNonNull([cat.auction, valueScore(h, mode) == null ? null : clamp(valueScore(h, mode) * 8, 0, 100)]),
-    pillarMind: avgNonNull([cat.temperament, cat.foalDate])
+    pillarGenetics: defaultIfNull(avgNonNull([
+      cat.pedigree,
+      mode.startsWith('breeding') ? cat.breeding : null,
+      studFeeScore,
+      h.blackType3 != null ? [35, 55, 75, 95][h.blackType3] : null,
+      h.nick != null ? [35, 55, 78, 95][h.nick] : null
+    ]), 55),
+
+    pillarSoundness: defaultIfNull(avgNonNull([
+      cat.conformation,
+      cat.veterinary,
+      cat.physical,
+      h.pSound != null ? [35, 65, 92][h.pSound] : null,
+      durabilityByStarts
+    ]), 55),
+
+    pillarPerformance: defaultIfNull(avgNonNull([
+      cat.performance,
+      mode.startsWith('breeding') ? cat.breeding : null,
+      classByPerformance,
+      earningsScore,
+      winRateScore(starts, wins, places)
+    ]), 55),
+
+    pillarValue: defaultIfNull(avgNonNull([
+      cat.auction,
+      valueFromVs,
+      valueRatioScore,
+      price != null ? clamp(85 - Math.log10(Math.max(price, 1)) * 8, 20, 85) : null,
+      mode.startsWith('breeding') ? studFeeScore : null
+    ]), 55),
+
+    pillarMind: defaultIfNull(avgNonNull([
+      cat.temperament,
+      cat.foalDate,
+      consistencyScore,
+      starts > 0 ? clamp(40 + Math.min(starts, 25) * 2.2, 40, 95) : null
+    ]), 55)
   };
 
   const pillars = {
@@ -304,7 +368,15 @@ function computeFivePillars(h, mode) {
   });
   const score = total ? Math.round(sum / total) : null;
   const decision = decisionLabel(score);
-  return { score, decision, pillars };
+
+  // Confidence reflects how much is direct observed data vs fallback estimation.
+  const directSignals = [
+    cat.pedigree, cat.conformation, cat.veterinary, cat.physical,
+    cat.performance, cat.auction, cat.breeding, cat.temperament, cat.foalDate
+  ].filter(v => v != null).length;
+  const confidence = clamp(Math.round((directSignals / 9) * 100), 35, 100);
+
+  return { score, decision, pillars, confidence };
 }
 
 // ---------- Overall scoring ----------
@@ -530,7 +602,7 @@ function renderList() {
           ${h.venue ? '· ' + escapeHtml(h.venue) : ''}
         </div>
         <div class="ped"><em>By</em> ${escapeHtml(ped)}</div>
-        ${p.score == null ? '' : `<div class="meta">5-pillar: <strong>${p.score}</strong> · ${p.decision.text}</div>`}
+        ${p.score == null ? '' : `<div class="meta">5-pillar: <strong>${p.score}</strong> · ${p.decision.text} · confidence ${p.confidence}%</div>`}
         ${h.aReserve ? `<div class="price">${fmtUSD(h.aReserve)}${vs ? ` · value ${vs}` : ''}</div>` : ''}
         <div class="breakdown">${breakdown}</div>
         <div class="actions">
@@ -612,6 +684,7 @@ function renderBenchmarkTable(currentHorse) {
       <td>${toRange10(p.pillars.pillarMind)?.toFixed(1) ?? '—'}</td>
       <td>${p.score == null ? '—' : p.score}</td>
       <td>${p.decision.text}</td>
+      <td>${p.confidence}%</td>
     </tr>`;
 
   out.innerHTML = `<table>
@@ -625,6 +698,7 @@ function renderBenchmarkTable(currentHorse) {
         <th>Mind</th>
         <th>Score</th>
         <th>Decision</th>
+        <th>Confidence</th>
       </tr>
     </thead>
     <tbody>
