@@ -350,6 +350,11 @@ document.getElementById('btnReset').addEventListener('click', () => {
   updateLiveScore();
 });
 
+document.getElementById('btnQuickSave').addEventListener('click', () => {
+  if (typeof form.requestSubmit === 'function') form.requestSubmit();
+  else form.dispatchEvent(new Event('submit', { cancelable: true }));
+});
+
 // ---------- View switching ----------
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
