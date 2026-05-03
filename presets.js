@@ -261,7 +261,306 @@ const HORSE_PRESETS = [
     notes: 'Three-time North American leading sire by earnings (2014–2016). Stud fee peaked at $300,000.'
   },
 
+  /* ---------------- MORE US CHAMPIONS ---------------- */
+
+  {
+    name: 'Flightline',
+    sex: 'Stallion',
+    foalDate: '2018-03-01',
+    color: 'Bay',
+    country: 'USA',
+    consignor: 'Hronis Racing / Kayak (bred)',
+    venue: 'Keeneland September 2019 ($1,000,000)',
+
+    sire: 'Tapit',
+    dam: 'Feathered',
+    damsire: 'War Front',
+    blackType3: 3,
+    sireFee: 185000,
+
+    pStarts: 6, pWins: 6, pPlaces: 0,
+    pEarnings: 3994200,
+    pSpeed: 124,             // BC Classic 2022 — highest Beyer in decades
+    pClass: 5, pSound: 2,
+
+    aReserve: 1000000,
+    aConsignor: 2,
+
+    bStudFee: 225000,        // Lane's End 2024
+    bProven: 1,
+    notes: 'Undefeated in 6 starts. 2022 BC Classic Beyer of 124 — highest in over 20 years. Standing at Lane\'s End Farm, $225,000 (2024).'
+  },
+
+  {
+    name: 'Arrogate',
+    sex: 'Stallion',
+    foalDate: '2013-02-28',
+    color: 'Gray',
+    country: 'USA',
+    consignor: 'Juddmonte (bred)',
+    venue: 'Keeneland September 2014 ($560,000)',
+
+    sire: 'Unbridled\'s Song',
+    dam: 'Bubbler',
+    damsire: 'Distorted Humor',
+    blackType3: 2,
+
+    pStarts: 11, pWins: 7, pPlaces: 1,
+    pEarnings: 17422600,     // world record earnings at time of retirement
+    pSpeed: 122,             // Travers Stakes 2016 (world record at the time)
+    pClass: 5, pSound: 2,
+
+    aReserve: 560000,
+    aConsignor: 2,
+
+    bStudFee: 75000,         // Juddmonte 2024 (reduced from $75k start)
+    bProven: 2,
+    notes: 'World-record earnings $17.4M at retirement. 2016 Breeders\' Cup Classic, 2017 Dubai World Cup & Pegasus World Cup. Travers Beyer of 122.'
+  },
+
+  {
+    name: 'California Chrome',
+    sex: 'Stallion',
+    foalDate: '2011-02-18',
+    color: 'Chestnut',
+    country: 'USA',
+    consignor: 'Perry & Steve Martin (bred)',
+    venue: 'Barretts March 2012 ($8,000)',
+
+    sire: 'Lucky Pulpit',
+    dam: 'Love the Chase',
+    damsire: 'Not For Love',
+    blackType3: 1,
+
+    pStarts: 27, pWins: 16, pPlaces: 4,
+    pEarnings: 14752650,
+    pSpeed: 102,
+    pClass: 5, pSound: 2,
+
+    aReserve: 8000,          // famously cheap yearling purchase
+    aConsignor: 0,
+
+    bStudFee: 15000,         // Taylor Made / standing internationally
+    bProven: 2,
+    notes: '2014 Kentucky Derby & Preakness winner. Bought for just $8,000 — the great auction story. Co-Horse of the Year 2014 & 2016. Standing internationally.'
+  },
+
+  {
+    name: 'Cigar',
+    sex: 'Stallion',
+    foalDate: '1990-04-18',
+    color: 'Bay',
+    country: 'USA',
+    consignor: 'Allen Paulson (bred)',
+    venue: 'Keeneland July 1991',
+
+    sire: 'Palace Music',
+    dam: 'Solar Slew',
+    damsire: 'Seattle Slew',
+    blackType3: 3,
+
+    pStarts: 33, pWins: 19, pPlaces: 9,
+    pEarnings: 9999815,
+    pSpeed: 114,             // BC Classic 1995
+    pClass: 5, pSound: 2,
+    notes: '16-race win streak 1994–96 (tied Citation\'s modern record). Two-time US Horse of the Year. Retired to Ashford Stud; found to be infertile.'
+  },
+
+  {
+    name: 'Rachel Alexandra',
+    sex: 'Mare',
+    foalDate: '2006-02-09',
+    color: 'Bay',
+    country: 'USA',
+    consignor: 'Stonestreet (bred)',
+    venue: 'Ocala Breeders\' Sales April 2007 ($490,000)',
+
+    sire: 'Medaglia d\'Oro',
+    dam: 'Lotta Kim',
+    damsire: 'Smoke Glacken',
+    blackType3: 2,
+
+    pStarts: 17, pWins: 13, pPlaces: 2,
+    pEarnings: 3506770,
+    pSpeed: 105,             // Preakness 2009
+    pClass: 5, pSound: 2,
+
+    aReserve: 490000,
+    aConsignor: 1,
+
+    bMareAge: 20,
+    bFoalsProduced: 6,
+    bWinnersProduced: 3,
+    bBTProduced: 1,
+    notes: '2009 US Horse of the Year — first filly to win in over 30 years. Won Preakness Stakes, defeating colts. Dam of several winners incl. Jess\'s Dream.'
+  },
+
+  {
+    name: 'Medaglia d\'Oro',
+    sex: 'Stallion',
+    foalDate: '1999-04-14',
+    color: 'Dark Bay',
+    country: 'USA',
+    consignor: 'Darley America (stands)',
+
+    sire: 'El Prado',
+    dam: 'Cappucino Bay',
+    damsire: 'Bailjumper',
+    blackType3: 2,
+
+    pStarts: 17, pWins: 8, pPlaces: 4,
+    pEarnings: 5754720,
+    pSpeed: 108,             // Whitney Handicap 2003
+    pClass: 5, pSound: 2,
+
+    bStudFee: 150000,        // Darley 2024
+    bProven: 2,
+    bPctSW: 10.5,
+    notes: 'Sire of Rachel Alexandra, Songbird, Drefong. Champion sire by quality. Standing at Darley America (Jonabell Farm).'
+  },
+
+  {
+    name: 'Storm Cat',
+    sex: 'Stallion',
+    foalDate: '1983-02-27',
+    color: 'Dark Bay',
+    country: 'USA',
+    consignor: 'Overbrook Farm (stood)',
+
+    sire: 'Storm Bird',
+    dam: 'Terlingua',
+    damsire: 'Secretariat',
+    blackType3: 3,
+
+    pStarts: 8, pWins: 4, pPlaces: 3,
+    pEarnings: 570610,
+    pClass: 4, pSound: 1,   // career shortened by injury
+
+    bStudFee: 500000,        // Overbrook — peak fee (2001), one of highest ever
+    bProven: 2,
+    bPctSW: 13.0,
+    notes: 'Stud fee peaked at $500,000 (2001) — North American record at the time. Sire of Giant\'s Causeway, Hennessy, Cat Thief. Broodmare sire influence enormous. Died 2013.'
+  },
+
+  {
+    name: 'A.P. Indy',
+    sex: 'Stallion',
+    foalDate: '1989-03-31',
+    color: 'Dark Bay',
+    country: 'USA',
+    consignor: 'Lane\'s End Farm (stood)',
+
+    sire: 'Seattle Slew',
+    dam: 'Weekend Surprise',
+    damsire: 'Secretariat',
+    blackType3: 3,
+
+    pStarts: 11, pWins: 8, pPlaces: 2,
+    pEarnings: 2979815,
+    pSpeed: 114,
+    pClass: 5, pSound: 1,   // missed Kentucky Derby with foot issue
+
+    bStudFee: 300000,        // Lane's End peak fee
+    bProven: 2,
+    bPctSW: 12.0,
+    notes: '1992 Breeders\' Cup Classic & Belmont Stakes winner, 1992 Horse of the Year. Sold as yearling for $2.9M (Keeneland July 1990, world record at time). Sire of Malibu Moon, Pulpit, Mineshaft. Died 2020.'
+  },
+
+  {
+    name: 'War Front',
+    sex: 'Stallion',
+    foalDate: '2002-01-15',
+    color: 'Bay',
+    country: 'USA',
+    consignor: 'Claiborne Farm (stands)',
+
+    sire: 'Danzig',
+    dam: 'Starry Dreamer',
+    damsire: 'Rubiano',
+    blackType3: 2,
+
+    pStarts: 9, pWins: 4, pPlaces: 1,
+    pEarnings: 523200,
+    pClass: 3, pSound: 1,
+
+    bStudFee: 250000,        // Claiborne 2024
+    bProven: 2,
+    bPctSW: 12.5,
+    notes: 'Claiborne Farm\'s flagship sire. Sire of Declaration of War, Air Force Blue, U S Navy Flag. Dominant influence on European turf pedigrees. Stud fee $250,000 (2024).'
+  },
+
   /* ---------------- INTERNATIONAL ---------------- */
+
+  {
+    name: 'Enable',
+    sex: 'Mare',
+    foalDate: '2014-02-22',
+    color: 'Bay',
+    country: 'IRE',
+    consignor: 'Khalid Abdullah / Juddmonte (bred)',
+    venue: 'Not sold at auction (homebred)',
+
+    sire: 'Nathaniel',
+    dam: 'Concentric',
+    damsire: 'Sadler\'s Wells',
+    blackType3: 3,
+
+    pStarts: 18, pWins: 14, pPlaces: 3,
+    pEarnings: 10862946,
+    pClass: 5, pSound: 2,
+
+    bMareAge: 12,
+    bFoalsProduced: 3,
+    bWinnersProduced: 1,
+    notes: 'Won 14 G1s incl. 2× Prix de l\'Arc de Triomphe (2017, 2018). Racing Post Rating 130. Now a Juddmonte broodmare.'
+  },
+
+  {
+    name: 'Winx',
+    sex: 'Mare',
+    foalDate: '2011-09-14',
+    color: 'Bay',
+    country: 'AUS',
+    consignor: 'Magic Millions 2013 ($230,000 AUD)',
+
+    sire: 'Street Cry',
+    dam: 'Vegas Showgirl',
+    damsire: 'Al Akbar',
+    blackType3: 2,
+
+    pStarts: 43, pWins: 37, pPlaces: 5,
+    pEarnings: 26143280,     // AUD — world record at retirement
+    pClass: 5, pSound: 2,
+
+    bMareAge: 15,
+    bFoalsProduced: 3,
+    bWinnersProduced: 1,
+    notes: '33-race win streak (world record). World\'s highest-rated racehorse (Timeform 130 = Frankel). 25× G1 wins. Bought for $230k AUD as yearling. World record earnings at retirement.'
+  },
+
+  {
+    name: 'Black Caviar',
+    sex: 'Mare',
+    foalDate: '2006-08-18',
+    color: 'Gray',
+    country: 'AUS',
+    consignor: 'Peter Moody Racing (trained)',
+    venue: 'Magic Millions 2007 ($210,000 AUD)',
+
+    sire: 'Bel Esprit',
+    dam: 'Helsinge',
+    damsire: 'Desert Sun',
+    blackType3: 2,
+
+    pStarts: 25, pWins: 25, pPlaces: 0,
+    pEarnings: 7953000,      // AUD
+    pClass: 5, pSound: 2,
+
+    bMareAge: 20,
+    bFoalsProduced: 4,
+    bWinnersProduced: 2,
+    notes: 'Undefeated in 25 starts — all G1 or G2. World\'s best sprinter. Australian Racing Hall of Fame. Also represented Australia at Royal Ascot (won 2012).'
+  },
 
   {
     name: 'Dubawi',
