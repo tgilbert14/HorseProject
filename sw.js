@@ -2,7 +2,7 @@
    Bump CACHE_VERSION (matches APP_VERSION in app.js) with every release.
    The page detects the new SW installing and shows the update banner.
 */
-const CACHE_VERSION='horse-selector-v1.3.2';
+const CACHE_VERSION='horse-selector-v1.4.0';
 const ASSETS=[
   './',
   './index.html',
