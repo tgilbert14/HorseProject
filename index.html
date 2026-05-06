@@ -1,622 +1,756 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Horse Selector — Auction & Breeding</title>
-<link rel="stylesheet" href="styles.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Horse Selector — Auction & Breeding</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
+
 <body>
 
-<header class="topbar">
-  <div class="brand">
-    <span class="logo">🐎</span>
-    <div>
-      <h1>Horse Selector</h1>
-      <p class="tag">Auction buying &amp; breeding evaluation</p>
-    </div>
-  </div>
-  <div class="mode-toggle">
-    <label>Mode:</label>
-    <select id="mode">
-      <option value="auction">Auction Buy</option>
-      <option value="breeding-mare">Breeding — Mare</option>
-      <option value="breeding-stallion">Breeding — Stallion</option>
-    </select>
-    <button id="btnSimpleMode" class="btn ghost" title="Show only the 5-pillar workflow">Simple: ON</button>
-    <button id="btnWeights" class="btn ghost">⚖ Weights</button>
-    <button id="btnAbout" class="btn ghost about-btn">? Help</button>
-    <button id="btnTheme" class="btn ghost theme-btn">☀ Light</button>
-  </div>
-</header>
-
-<!-- Update notification banner -->
-<div id="updateBanner" class="update-banner hidden">
-  <span>🔄 A new version of Horse Selector is available.</span>
-  <button id="btnReload" class="btn primary">Update Now</button>
-  <button id="btnDismiss" class="btn ghost">Later</button>
-</div>
-
-<nav class="tabs">
-  <button class="tab active" data-view="form">Add / Edit Horse</button>
-  <button class="tab" data-view="list">Saved Horses (<span id="countSaved">0</span>)</button>
-  <button class="tab" data-view="compare">Compare</button>
-  <button class="tab" data-view="data">Import / Export</button>
-  <button class="tab" data-view="guide">Selection Guide</button>
-</nav>
-
-<main>
-
-<!-- ============== FORM VIEW ============== -->
-<section id="view-form" class="view active">
-
-  <div class="card preset-card">
-    <h2>Quick Load — Real Horse Presets <span class="hint">verified public-record data</span></h2>
-    <div class="preset-row">
-      <select id="presetSelect">
-        <option value="">— Choose a famous horse to auto-fill —</option>
-      </select>
-      <button type="button" class="btn" id="btnLoadPreset">Load into form</button>
-      <button type="button" class="btn" id="btnAuctionFast">Auction Fast Entry</button>
-      <button type="button" class="btn primary" id="btnQuickSave">Save horse</button>
-    </div>
-    <p class="preset-note">
-      Pedigree, race record, earnings, Beyer figures, and stud fees come from public records
-      (Equibase, Jockey Club, Racing Post, farm fee schedules). Conformation scores, vet findings,
-      and temperament are subjective and intentionally left blank — fill those in yourself.
-    </p>
-  </div>
-
-  <form id="horseForm" autocomplete="off">
-
-    <div class="card">
-      <h2>Five Pillars Decision Framework <span class="hint">simple buy/no-buy model</span></h2>
-      <div class="grid pillars-grid">
-        <label>1) Genetics & Pedigree Fit
-          <input type="range" min="1" max="10" value="6" name="pillarGenetics" oninput="this.nextElementSibling.textContent=this.value"/>
-          <output>6</output>
-        </label>
-        <label>2) Physical Soundness
-          <input type="range" min="1" max="10" value="6" name="pillarSoundness" oninput="this.nextElementSibling.textContent=this.value"/>
-          <output>6</output>
-        </label>
-        <label>3) Performance Potential / Proof
-          <input type="range" min="1" max="10" value="6" name="pillarPerformance" oninput="this.nextElementSibling.textContent=this.value"/>
-          <output>6</output>
-        </label>
-        <label>4) Price-Value Edge
-          <input type="range" min="1" max="10" value="6" name="pillarValue" oninput="this.nextElementSibling.textContent=this.value"/>
-          <output>6</output>
-        </label>
-        <label>5) Mindset & Trainability
-          <input type="range" min="1" max="10" value="6" name="pillarMind" oninput="this.nextElementSibling.textContent=this.value"/>
-          <output>6</output>
-        </label>
-      </div>
-
-      <div class="pillar-summary">
-        <span>5-Pillar Score: <strong id="pillarScore">—</strong> / 100</span>
-        <span>Decision: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
-        <span>Confidence: <strong id="pillarConfidence">—</strong></span>
-      </div>
-
-      <div class="score-mode-row">
-        <label for="scoreMode">Scoring mode:</label>
-        <select id="scoreMode">
-          <option value="estimated">Estimated (recommended for historical/public records)</option>
-          <option value="strict">Strict verified only (no inferred estimates)</option>
-        </select>
-      </div>
-
-      <details class="pillar-guide" open>
-        <summary>How to score each pillar (1–10)</summary>
-        <div class="pillar-guide-grid">
-          <div>
-            <h4>1) Genetics &amp; Pedigree Fit</h4>
-            <p><strong>9–10:</strong> elite sire/dam production, strong black-type family, proven nick</p>
-            <p><strong>7–8:</strong> good sire stats and productive female line</p>
-            <p><strong>5–6:</strong> average commercial pedigree, some positives</p>
-            <p><strong>1–4:</strong> weak production record or poor pedigree match</p>
-          </div>
-          <div>
-            <h4>2) Physical Soundness</h4>
-            <p><strong>9–10:</strong> clean vet, balanced frame, no significant structural concerns</p>
-            <p><strong>7–8:</strong> minor manageable findings only</p>
-            <p><strong>5–6:</strong> mixed conformation or moderate vet risk</p>
-            <p><strong>1–4:</strong> major red flags (wind/ortho/recurring soundness)</p>
-          </div>
-          <div>
-            <h4>3) Performance Potential / Proof</h4>
-            <p><strong>9–10:</strong> elite class/speed profile or proven top-level performer</p>
-            <p><strong>7–8:</strong> strong figures, consistent results, clear upside</p>
-            <p><strong>5–6:</strong> moderate profile, unclear ceiling</p>
-            <p><strong>1–4:</strong> limited ability shown, weak indicators</p>
-          </div>
-          <div>
-            <h4>4) Price-Value Edge</h4>
-            <p><strong>9–10:</strong> clear under-market opportunity, high upside per dollar</p>
-            <p><strong>7–8:</strong> fair price with some positive edge</p>
-            <p><strong>5–6:</strong> market-correct pricing, no major edge</p>
-            <p><strong>1–4:</strong> expensive for risk/quality profile</p>
-          </div>
-          <div>
-            <h4>5) Mindset &amp; Trainability</h4>
-            <p><strong>9–10:</strong> professional attitude, focused, highly trainable</p>
-            <p><strong>7–8:</strong> mostly good behavior, manageable quirks</p>
-            <p><strong>5–6:</strong> average attitude, inconsistent focus</p>
-            <p><strong>1–4:</strong> difficult temperament, reliability concerns</p>
-          </div>
-        </div>
-      </details>
-
-      <div class="benchmark-head">
-        <h3>Historical Benchmarks</h3>
-        <select id="benchmarkFilter">
-          <option value="all">All presets</option>
-          <option value="elite">Elite champions</option>
-          <option value="value">Value-buys</option>
-        </select>
-      </div>
-      <div id="benchmarkTable"></div>
-    </div>
-
-    <div class="card">
-      <h2>Identity</h2>
-      <div class="grid">
-        <label>Name <input name="name" required placeholder="e.g. Hip 245 / Storm Approach" /></label>
-        <label>Hip / Lot # <input name="hip" /></label>
-        <label>Sex
-          <select name="sex">
-            <option value="">—</option>
-            <option>Colt</option><option>Filly</option><option>Gelding</option>
-            <option>Stallion</option><option>Mare</option>
-          </select>
-        </label>
-        <label>Foaling Date <input type="date" name="foalDate" /></label>
-        <label>Color <input name="color" /></label>
-        <label>Country of Origin <input name="country" placeholder="USA, IRE, GB..." /></label>
-        <label>Consignor / Farm <input name="consignor" /></label>
-        <label>Sales Venue / Auction <input name="venue" placeholder="Keeneland Sept, Tattersalls..." /></label>
-      </div>
-    </div>
-
-    <div class="card advanced-card">
-      <h2>Pedigree <span class="hint">most predictive single factor</span></h2>
-      <div class="grid">
-        <label>Sire <input name="sire" /></label>
-        <label>Sire stud fee (USD) <input type="number" name="sireFee" min="0" step="500" /></label>
-        <label>Sire AEI <button type="button" class="info" data-info="Average Earnings Index — sire's progeny earnings vs avg. ~1.0 = average, 2.0+ = elite.">ⓘ</button>
-          <input type="number" name="sireAEI" min="0" step="0.01" placeholder="1.0 avg, 2.0+ elite" /></label>
-        <label>Sire CI (Comparable Index) <input type="number" name="sireCI" min="0" step="0.01" /></label>
-
-        <label>Dam <input name="dam" /></label>
-        <label>Dam — # of foals <input type="number" name="damFoals" min="0" /></label>
-        <label>Dam — # of winners <input type="number" name="damWinners" min="0" /></label>
-        <label>Dam — # of black-type (stakes) horses <input type="number" name="damBlackType" min="0" /></label>
-
-        <label>Damsire <input name="damsire" /></label>
-        <label>Damsire AEI <input type="number" name="damsireAEI" min="0" step="0.01" /></label>
-
-        <label>Black-type within 3 generations
-          <select name="blackType3">
-            <option value="0">None</option>
-            <option value="1">Some (Listed/Group 3)</option>
-            <option value="2">Multiple G2/G3</option>
-            <option value="3">Group/Grade 1 family</option>
-          </select>
-        </label>
-        <label>Nicking rating
-          <select name="nick">
-            <option value="0">Unknown / poor (D, F)</option>
-            <option value="1">Average (C)</option>
-            <option value="2">Good (B+)</option>
-            <option value="3">Excellent (A, A+)</option>
-          </select>
-        </label>
-        <label>Dosage Index <button type="button" class="info" data-info="Speed-vs-stamina balance from chef-de-race ancestors. 0.5–4.0 typical. ~2–4 favors speed, &lt;1 favors stamina/turf.">ⓘ</button>
-          <input type="number" name="dosageIndex" min="0" step="0.1" /></label>
-        <label>Inbreeding coefficient (Wright %) <input type="number" name="inbreeding" min="0" step="0.1" placeholder="0–10%" /></label>
-      </div>
-    </div>
-
-    <div class="card advanced-card">
-      <h2>Conformation <span class="hint">rate 1 (poor) – 10 (exceptional)</span></h2>
-      <div class="grid">
-        <label>Overall Balance / Symmetry <input type="range" min="1" max="10" value="6" name="cBalance" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Shoulder Angle / Length <input type="range" min="1" max="10" value="6" name="cShoulder" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Hindquarter / Hip Power <input type="range" min="1" max="10" value="6" name="cHip" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Cannon Bone / Substance <input type="range" min="1" max="10" value="6" name="cCannon" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Knees (alignment, set) <input type="range" min="1" max="10" value="6" name="cKnees" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Pasterns (angle ~45–50°) <input type="range" min="1" max="10" value="6" name="cPasterns" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Hooves (size, shape, symmetry) <input type="range" min="1" max="10" value="6" name="cHooves" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Neck length &amp; set <input type="range" min="1" max="10" value="6" name="cNeck" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Topline / Back <input type="range" min="1" max="10" value="6" name="cTopline" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-        <label>Walk quality (overstep, fluidity) <input type="range" min="1" max="10" value="6" name="cWalk" oninput="this.nextElementSibling.textContent=this.value"/><output>6</output></label>
-      </div>
-    </div>
-
-    <div class="card advanced-card">
-      <h2>Physical Metrics</h2>
-      <div class="grid">
-        <label>Height (hands) <input type="number" name="height" step="0.1" placeholder="15.2 – 16.3" /></label>
-        <label>Weight (lb) <input type="number" name="weight" step="1" /></label>
-        <label>Heart girth (in) <input type="number" name="girth" step="0.1" /></label>
-        <label>Cannon circumference (in) <input type="number" name="cannonIn" step="0.1" /></label>
-      </div>
-    </div>
-
-    <div class="card advanced-card">
-      <h2>Veterinary</h2>
-      <div class="grid">
-        <label>Repository X-rays (OCD, chips, sesamoids)
-          <select name="vXrays">
-            <option value="3">Clean</option>
-            <option value="2">Minor findings (acceptable)</option>
-            <option value="1">Moderate concerns</option>
-            <option value="0">Significant issues</option>
-          </select>
-        </label>
-        <label>Throat scope (laryngeal grade)
-          <select name="vScope">
-            <option value="3">Grade I</option>
-            <option value="2">Grade II</option>
-            <option value="1">Grade III</option>
-            <option value="0">Grade IV / surgery</option>
-          </select>
-        </label>
-        <label>Heart / cardio
-          <select name="vHeart">
-            <option value="2">Excellent</option>
-            <option value="1">Normal</option>
-            <option value="0">Murmur / concern</option>
-          </select>
-        </label>
-        <label>Wind / breathing
-          <select name="vWind">
-            <option value="2">Clear</option>
-            <option value="1">Minor noise</option>
-            <option value="0">Roarer / treated</option>
-          </select>
-        </label>
-        <label>Eyes / vision
-          <select name="vEyes">
-            <option value="1">Normal</option>
-            <option value="0">Defect</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="card advanced-card">
-      <h2>Performance <span class="hint">if raced</span></h2>
-      <div class="grid">
-        <label>Starts <input type="number" name="pStarts" min="0" /></label>
-        <label>Wins <input type="number" name="pWins" min="0" /></label>
-        <label>Places (2nd/3rd) <input type="number" name="pPlaces" min="0" /></label>
-        <label>Earnings (USD) <input type="number" name="pEarnings" min="0" step="100" /></label>
-        <label>Best Speed Figure (Beyer/Timeform) <input type="number" name="pSpeed" min="0" /></label>
-        <label>Highest class won
-          <select name="pClass">
-            <option value="0">Maiden / unraced</option>
-            <option value="1">Allowance / Handicap</option>
-            <option value="2">Listed</option>
-            <option value="3">Group/Grade 3</option>
-            <option value="4">Group/Grade 2</option>
-            <option value="5">Group/Grade 1</option>
-          </select>
-        </label>
-        <label>Soundness history
-          <select name="pSound">
-            <option value="2">No issues</option>
-            <option value="1">Minor / recovered</option>
-            <option value="0">Recurring</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Auction / Price</h2>
-      <div class="grid">
-        <label>Asking / Reserve (USD) <input type="number" name="aReserve" min="0" step="500" /></label>
-        <label>Your max bid (USD) <input type="number" name="aMaxBid" min="0" step="500" /></label>
-        <label>Estimated market value (USD) <input type="number" name="aMarketEst" min="0" step="500" /></label>
-        <label>Consignor reputation
-          <select name="aConsignor">
-            <option value="2">Top tier</option>
-            <option value="1">Reputable</option>
-            <option value="0">Unknown</option>
-          </select>
-        </label>
-        <label>Estimated vet/transport cost (USD) <input type="number" name="aVetCost" min="0" step="100" /></label>
-      </div>
-    </div>
-
-    <div class="card breeding-only advanced-card">
-      <h2>Breeding — Mare-Specific</h2>
-      <div class="grid">
-        <label>Mare age <input type="number" name="bMareAge" min="0" /></label>
-        <label>Foals produced <input type="number" name="bFoalsProduced" min="0" /></label>
-        <label>Winners produced <input type="number" name="bWinnersProduced" min="0" /></label>
-        <label>Black-type produced <input type="number" name="bBTProduced" min="0" /></label>
-        <label>Fertility / reproductive status
-          <select name="bFertility">
-            <option value="2">Excellent</option>
-            <option value="1">Average</option>
-            <option value="0">Issues</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="card breeding-only advanced-card">
-      <h2>Breeding — Stallion-Specific</h2>
-      <div class="grid">
-        <label>Stud fee (USD) <input type="number" name="bStudFee" min="0" step="500" /></label>
-        <label>Book size (mares per year) <input type="number" name="bBookSize" min="0" /></label>
-        <label>% Winners from runners <input type="number" name="bPctWinners" min="0" max="100" step="1" /></label>
-        <label>% Stakes winners from runners <input type="number" name="bPctSW" min="0" max="100" step="0.1" /></label>
-        <label>First-crop / proven status
-          <select name="bProven">
-            <option value="2">Proven sire of stakes winners</option>
-            <option value="1">First/second crop, promising</option>
-            <option value="0">Unproven</option>
-          </select>
-        </label>
-        <label>Cross/nicking with target mare(s)
-          <select name="bCross">
-            <option value="3">A+ nick</option>
-            <option value="2">A / B</option>
-            <option value="1">C</option>
-            <option value="0">Unknown / poor</option>
-          </select>
-        </label>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Temperament &amp; Notes</h2>
-      <div class="grid">
-        <label>Temperament
-          <select name="temperament">
-            <option value="3">Excellent — bold, focused</option>
-            <option value="2">Good</option>
-            <option value="1">Average</option>
-            <option value="0">Difficult</option>
-          </select>
-        </label>
-        <label class="full">Notes / observations
-          <textarea name="notes" rows="3" placeholder="Walk video impressions, attitude on the shank, repository flags..."></textarea>
-        </label>
-      </div>
-    </div>
-
-    <div class="form-actions">
-      <button type="submit" class="btn primary">💾 Save Horse</button>
-      <button type="button" id="btnReset" class="btn ghost">Reset Form</button>
-      <span class="live-score">Live Score: <strong id="liveScore">—</strong> / 100</span>
-    </div>
-    <input type="hidden" name="id" />
-  </form>
-</section>
-
-<!-- ============== LIST VIEW ============== -->
-<section id="view-list" class="view">
-  <div class="toolbar">
-    <input id="search" placeholder="Search by name, sire, dam..." />
-    <select id="sortBy">
-      <option value="score">Sort: Overall Score</option>
-      <option value="value">Sort: Value Score (score / price)</option>
-      <option value="name">Sort: Name</option>
-      <option value="price">Sort: Price (low → high)</option>
-      <option value="date">Sort: Date Added</option>
-    </select>
-  </div>
-  <div id="horseList" class="horse-list"></div>
-</section>
-
-<!-- ============== COMPARE VIEW ============== -->
-<section id="view-compare" class="view">
-  <p class="hint">Select 2–4 horses to compare side-by-side.</p>
-  <div id="compareSelect" class="compare-select"></div>
-  <div id="compareTable"></div>
-</section>
-
-<!-- ============== DATA VIEW ============== -->
-<section id="view-data" class="view">
-  <div class="card">
-    <h2>Export</h2>
-    <p>Download all saved horses as CSV (spreadsheet-ready) or JSON (full backup).</p>
-    <button class="btn" id="btnExportCSV">⬇ Export CSV</button>
-    <button class="btn" id="btnExportJSON">⬇ Export JSON</button>
-  </div>
-  <div class="card">
-    <h2>Import</h2>
-    <p>Load a previously exported JSON backup. <strong>Replaces current data.</strong></p>
-    <input type="file" id="importFile" accept=".json" />
-  </div>
-  <div class="card danger">
-    <h2>Danger Zone</h2>
-    <button class="btn danger" id="btnClear">🗑 Clear All Data</button>
-  </div>
-</section>
-
-<!-- ============== GUIDE VIEW ============== -->
-<section id="view-guide" class="view">
-  <article class="card guide">
-    <h2>Selection Guide — What the factors mean</h2>
-
-    <h3>Pedigree (≈ 30% of score)</h3>
-    <ul>
-      <li><strong>Sire AEI / CI</strong> — Average Earnings Index measures a sire's progeny earnings against the average (1.0). Elite sires consistently exceed 2.0. CI compares against the mares he's covered.</li>
-      <li><strong>Dam quality</strong> — A productive dam (multiple winners, black-type) is statistically the strongest single predictor in many studies. Look at the second dam too.</li>
-      <li><strong>Black-type within 3 generations</strong> — Italicized/bolded names in the catalogue. The closer up, the better.</li>
-      <li><strong>Nicking</strong> — Statistical compatibility of sire line × broodmare sire line. A+ nicks have produced disproportionate stakes winners.</li>
-      <li><strong>Dosage Index</strong> — Speed-vs-stamina balance derived from chef-de-race ancestors. ~2–4 favors speed, &lt;1 favors stamina/turf.</li>
-      <li><strong>Inbreeding</strong> — Light inbreeding to superior ancestors (3×4, 4×4) can concentrate quality; heavy inbreeding (&gt;6%) raises risk.</li>
-    </ul>
-
-    <h3>Conformation (≈ 20%)</h3>
-    <ul>
-      <li><strong>Balance</strong> — Shoulder length ≈ hip length; horse should look "in three equal parts."</li>
-      <li><strong>Shoulder</strong> — A long, sloping shoulder (~45°) gives stride length and absorbs concussion.</li>
-      <li><strong>Hindquarter</strong> — The engine. Look for muscle, length from hip to hock, and a well-let-down hock.</li>
-      <li><strong>Cannon bone</strong> — Short, dense, and substantial. ≥8" circumference for a yearling colt is a common benchmark.</li>
-      <li><strong>Pasterns</strong> — 45–50°. Too upright = concussion injuries; too sloped = soft-tissue strain.</li>
-      <li><strong>Knees</strong> — Should be flat from the side, not "back at the knee" (predisposes to chips) or "over at the knee."</li>
-      <li><strong>Walk</strong> — A free, overstepping walk strongly correlates with athletic gallop.</li>
-    </ul>
-
-    <h3>Veterinary (≈ 15%)</h3>
-    <ul>
-      <li><strong>Repository X-rays</strong> at major sales — review with a vet. OCD lesions in stifles/hocks are red flags.</li>
-      <li><strong>Throat scope</strong> — Laryngeal Grade I–II is standard; Grade III/IV signals roaring risk.</li>
-      <li><strong>Heart, wind, eyes</strong> — basic soundness checks.</li>
-    </ul>
-
-    <h3>Performance (raced horses)</h3>
-    <ul>
-      <li>Earnings, speed figures (Beyer/Timeform), highest class won, and soundness history.</li>
-      <li>For unraced yearlings/weanlings this section is skipped automatically.</li>
-    </ul>
-
-    <h3>Auction / Value</h3>
-    <ul>
-      <li>The "Value Score" on the list view = Overall Score ÷ price (in $10k units). It surfaces under-the-radar horses whose quality outpaces their reserve.</li>
-    </ul>
-
-    <h3>Breeding</h3>
-    <ul>
-      <li><strong>Mare</strong>: produce record &gt; her own race record. An older mare with multiple winners is more valuable than a young one with no foals.</li>
-      <li><strong>Stallion</strong>: % stakes winners from runners is the cleanest quality metric; book size and stud fee indicate market belief.</li>
-      <li><strong>Cross / nick</strong>: switch the mode toggle to a breeding mode and the cross/nick fields will be weighted heavily.</li>
-    </ul>
-
-    <h3>Five Pillars Workflow (Recommended)</h3>
-    <ul>
-      <li><strong>Score each pillar 1–10</strong> using the rubric in the Five Pillars card.</li>
-      <li><strong>Use Estimated mode</strong> when reviewing historical horses or candidates with incomplete private vet/conformation data.</li>
-      <li><strong>Use Strict verified mode</strong> when you only want scores built from direct entered evidence (no inferred estimates).</li>
-      <li><strong>Interpret outputs</strong>: BUY = strong candidate, SHORTLIST = re-inspect, PASS = risk/value mismatch.</li>
-      <li><strong>Watch Confidence %</strong>: low confidence means you need more direct inputs before final bid decisions.</li>
-    </ul>
-
-    <p class="disclaimer">This tool is a decision aid, not a substitute for a qualified bloodstock agent and veterinarian. Always vet in person before bidding.</p>
-  </article>
-</section>
-
-</main>
-
-<!-- WEIGHTS MODAL -->
-<div id="weightsModal" class="modal hidden">
-  <div class="modal-body">
-    <h2>Scoring Weights — <span id="weightsModeLabel"></span></h2>
-    <p class="hint">Adjust how much each category contributes to the overall score. Values auto-normalize.</p>
-    <div id="weightsSliders"></div>
-    <div class="form-actions">
-      <button class="btn primary" id="btnSaveWeights">Save</button>
-      <button class="btn ghost" id="btnResetWeights">Reset to defaults</button>
-      <button class="btn ghost" id="btnCloseWeights">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Click-popover for ⓘ buttons -->
-<div id="infoPopover" class="info-popover hidden"></div>
-
-<!-- ABOUT / README MODAL -->
-<div id="aboutModal" class="modal hidden">
-  <div class="modal-body about-modal-body">
-    <div class="about-header">
+  <header class="topbar">
+    <div class="brand">
       <span class="logo">🐎</span>
       <div>
-        <h2>Horse Selector</h2>
-        <p class="about-sub">Auction Buying &amp; Breeding Evaluation Tool</p>
+        <h1>Horse Selector</h1>
+        <p class="tag">Auction buying &amp; breeding evaluation</p>
       </div>
-      <button class="btn ghost about-close" id="btnCloseAbout">✕ Close</button>
     </div>
+    <div class="mode-toggle">
+      <label>Mode: <button type="button" class="info" id="btnModeInfo"
+          style="margin-left: 4px; font-size: 14px; padding: 2px 6px;"
+          data-info="Auction Buy: weights performance + value. Breeding Mare: weights her proven foals. Breeding Stallion: weights his progeny earnings.">ⓘ</button></label>
+      <select id="mode">
+        <option value="auction">Auction Buy</option>
+        <option value="breeding-mare">Breeding — Mare</option>
+        <option value="breeding-stallion">Breeding — Stallion</option>
+      </select>
+      <button id="btnWeights" class="btn ghost">⚖ Weights</button>
+      <button id="btnAbout" class="btn ghost about-btn">? Help</button>
+      <button id="btnTheme" class="btn ghost theme-btn">☀ Light</button>
+    </div>
+  </header>
 
-    <div class="about-content">
+  <!-- Update notification banner -->
+  <div id="updateBanner" class="update-banner hidden">
+    <span>🔄 A new version of Horse Selector is available.</span>
+    <button id="btnReload" class="btn primary">Update Now</button>
+    <button id="btnDismiss" class="btn ghost">Later</button>
+  </div>
 
-      <p>A standalone, browser-based decision tool for evaluating racehorses at auction or for
-      breeding selection. No installation, no account, no server — data saved locally in your browser.</p>
+  <nav class="tabs">
+    <button class="tab active" data-view="form">Add / Edit Horse</button>
+    <button class="tab" data-view="list">Saved Horses (<span id="countSaved">0</span>)</button>
+    <button class="tab" data-view="compare">Compare</button>
+    <button class="tab" data-view="data">Import / Export</button>
+    <button class="tab" data-view="guide">Selection Guide</button>
+  </nav>
 
-      <div class="about-modes">
-        <div class="about-mode-card">
-          <div class="about-mode-icon">🏷️</div>
-          <strong>Auction Buy</strong>
-          <p>Score a yearling, weanling, or racing prospect before bidding</p>
+  <main>
+
+    <!-- ============== FORM VIEW ============== -->
+    <section id="view-form" class="view active">
+
+      <div class="card preset-card">
+        <h2>Quick Load — Real Horse Presets <span class="hint">verified public-record data</span></h2>
+        <div class="preset-row">
+          <select id="presetSelect">
+            <option value="">— Choose a famous horse to auto-fill —</option>
+          </select>
+          <button type="button" class="btn primary" id="btnQuickSave">Save horse</button>
         </div>
-        <div class="about-mode-card">
-          <div class="about-mode-icon">🐴</div>
-          <strong>Breeding — Mare</strong>
-          <p>Evaluate produce record, fertility, and pedigree for pairing</p>
-        </div>
-        <div class="about-mode-card">
-          <div class="about-mode-icon">⭐</div>
-          <strong>Breeding — Stallion</strong>
-          <p>Compare by fee, progeny stats, and nick with your mares</p>
+        <p class="preset-note">
+          Pedigree, race record, earnings, Beyer figures, and stud fees come from public records.
+          Conformation, vet, and temperament are blank by default — only fill those in when you've
+          actually inspected the horse. Anything left blank is treated as <em>unknown</em>, not "clean".
+        </p>
+        <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+          <strong>OR</strong> <button type="button" class="btn ghost" id="btnEnterOwnHorse">Enter your own horse to
+            evaluate</button>
         </div>
       </div>
 
-      <h3>Scoring Categories</h3>
-      <table class="about-table">
-        <thead><tr><th>Category</th><th>Auction Weight</th><th>What it measures</th></tr></thead>
-        <tbody>
-          <tr><td>Pedigree</td><td>~30%</td><td>Sire AEI, dam produce, black-type proximity, nicking grade, dosage, inbreeding</td></tr>
-          <tr><td>Conformation</td><td>~22%</td><td>10 structural traits rated 1–10 (balance, shoulder, hip, cannon, knees, pasterns, hooves, neck, topline, walk)</td></tr>
-          <tr><td>Veterinary</td><td>~15%</td><td>Repository X-rays, throat scope grade, heart, wind, eyes</td></tr>
-          <tr><td>Performance</td><td>~8%</td><td>Starts/wins/places, earnings, Beyer/Timeform speed figure, class level, soundness</td></tr>
-          <tr><td>Auction / Price</td><td>~10%</td><td>Reserve vs market estimate (generates Value Score), consignor reputation</td></tr>
-          <tr><td>Physical</td><td>~5%</td><td>Height, girth, cannon circumference vs ideal ranges</td></tr>
-          <tr><td>Temperament</td><td>~5%</td><td>Attitude, trainability</td></tr>
-          <tr><td>Foaling Date</td><td>~5%</td><td>Jan–Mar foals favored (universal Jan 1 birthday rule)</td></tr>
-          <tr><td>Breeding</td><td>0% (auction)</td><td>Mare produce record / stallion progeny stats (weighted higher in breeding modes)</td></tr>
-        </tbody>
-      </table>
+      <form id="horseForm" autocomplete="off">
 
-      <h3>Key Features</h3>
-      <ul class="about-features">
-        <li><strong>Real Horse Presets</strong> — Load verified public-record data for 22 famous horses (Secretariat, Frankel, Winx, etc.) with one click</li>
-        <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
-        <li><strong>Value Score</strong> — Overall Score ÷ price, surfacing quality below market price</li>
-        <li><strong>Side-by-side Compare</strong> — Select 2–4 horses; best/worst values highlighted automatically</li>
-        <li><strong>CSV Export</strong> — Spreadsheet-ready export including all sub-scores for Excel or Google Sheets</li>
-        <li><strong>JSON Backup</strong> — Full backup and restore of all records</li>
-        <li><strong>Custom Weights</strong> — Adjust how much each category counts per evaluation mode (⚖ Weights button)</li>
-        <li><strong>Selection Guide tab</strong> — Built-in reference explaining every factor and the research behind it</li>
-      </ul>
+        <!-- HERO: 5-Pillar Decision -->
+        <div class="card hero-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h2 style="margin: 0;">Decision <span class="hint">live — updates as you fill the form</span></h2>
+            <button type="button" class="btn" id="btnSaveFromHero">💾 Save horse</button>
+          </div>
+          <div class="pillar-summary">
+            <span>5-Pillar Score: <strong id="pillarScore">—</strong> / 100</span>
+            <span>Decision: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
+            <span>Confidence: <strong id="pillarConfidence">—</strong></span>
+          </div>
+          <p class="hint hero-hint">
+            Confidence rises as you add real data. A low-confidence BUY is just a hypothesis —
+            don't bid on it without inspection &amp; vet review.
+          </p>
 
-      <h3>Data &amp; Privacy</h3>
-      <p>All data is stored in your <strong>browser's localStorage</strong>. Nothing is sent to any server.
-      Use <em>Export JSON</em> regularly as a backup — clearing browser data will erase saved horses.</p>
+          <div class="benchmark-head">
+            <h3>Compare to historical benchmarks</h3>
+            <select id="benchmarkFilter">
+              <option value="all">All presets</option>
+              <option value="elite">Elite champions</option>
+              <option value="value">Value-buys</option>
+            </select>
+          </div>
+          <div id="benchmarkTable"></div>
 
-      <h3>Preset Data Sources</h3>
-      <p>Preset horses use <strong>public-record data only</strong>: Jockey Club, Weatherbys, Equibase,
-      Racing Post, BHA, and publicly advertised stud farm fee schedules.
-      Conformation, vet findings, and temperament are intentionally blank — those require in-person evaluation.</p>
+          <details class="pillar-guide">
+            <summary>What the 5 pillars mean (1–10 rubric)</summary>
+            <div class="pillar-guide-grid">
+              <div>
+                <h4>1) Genetics &amp; Pedigree Fit</h4>
+                <p><strong>9–10:</strong> elite sire/dam production, strong black-type family, proven nick</p>
+                <p><strong>7–8:</strong> good sire stats and productive female line</p>
+                <p><strong>5–6:</strong> average commercial pedigree, some positives</p>
+                <p><strong>1–4:</strong> weak production record or poor pedigree match</p>
+              </div>
+              <div>
+                <h4>2) Physical Soundness</h4>
+                <p><strong>9–10:</strong> clean vet, balanced frame, no significant structural concerns</p>
+                <p><strong>7–8:</strong> minor manageable findings only</p>
+                <p><strong>5–6:</strong> mixed conformation or moderate vet risk</p>
+                <p><strong>1–4:</strong> major red flags (wind/ortho/recurring soundness)</p>
+              </div>
+              <div>
+                <h4>3) Performance Potential / Proof</h4>
+                <p><strong>9–10:</strong> elite class/speed profile or proven top-level performer</p>
+                <p><strong>7–8:</strong> strong figures, consistent results, clear upside</p>
+                <p><strong>5–6:</strong> moderate profile, unclear ceiling</p>
+                <p><strong>1–4:</strong> limited ability shown, weak indicators</p>
+              </div>
+              <div>
+                <h4>4) Price-Value Edge</h4>
+                <p><strong>9–10:</strong> clear under-market opportunity, high upside per dollar</p>
+                <p><strong>7–8:</strong> fair price with some positive edge</p>
+                <p><strong>5–6:</strong> market-correct pricing, no major edge</p>
+                <p><strong>1–4:</strong> expensive for risk/quality profile</p>
+              </div>
+              <div>
+                <h4>5) Mindset &amp; Trainability</h4>
+                <p><strong>9–10:</strong> professional attitude, focused, highly trainable</p>
+                <p><strong>7–8:</strong> mostly good behavior, manageable quirks</p>
+                <p><strong>5–6:</strong> average attitude, inconsistent focus</p>
+                <p><strong>1–4:</strong> difficult temperament, reliability concerns</p>
+              </div>
+            </div>
+          </details>
+        </div>
 
-      <div class="about-disclaimer">
-        ⚠️ This tool is a structured decision aid, not a substitute for a qualified bloodstock agent
-        and veterinarian. Always conduct an in-person inspection and independent veterinary review
-        before bidding at auction.
+        <!-- IDENTITY -->
+        <div class="card">
+          <h2>Identity</h2>
+          <div class="identity-row">
+            <div class="photo-preview-wrap">
+              <img id="photoPreview" class="photo-preview" alt="" />
+              <div id="photoPlaceholder" class="photo-preview-placeholder">🐎</div>
+            </div>
+            <div class="identity-fields grid">
+              <label class="full">Photo URL <input name="photoUrl" type="url"
+                  placeholder="https://... paste a public image link" /></label>
+              <label>Name <input name="name" required placeholder="e.g. Hip 245 / Storm Approach" /></label>
+              <label>Hip / Lot # <input name="hip" /></label>
+              <label>Sex
+                <select name="sex">
+                  <option value="">—</option>
+                  <option>Colt</option>
+                  <option>Filly</option>
+                  <option>Gelding</option>
+                  <option>Stallion</option>
+                  <option>Mare</option>
+                </select>
+              </label>
+              <label>Foaling Date <button type="button" class="info"
+                  data-info="For mares: critical window for breeding (older mares have fewer productive years). For stallions: year of birth affects commercial value.">ⓘ</button>
+                <input type="date" name="foalDate" /></label>
+              <label>Country <input name="country" placeholder="USA, IRE, GB..." /></label>
+              <label>Consignor / Farm <input name="consignor" /></label>
+              <label>Sales Venue <input name="venue" placeholder="Keeneland Sept, Tattersalls..." /></label>
+            </div>
+          </div>
+        </div>
+
+        <!-- PEDIGREE -->
+        <div class="card">
+          <h2>Pedigree <span class="hint">most predictive single factor</span></h2>
+          <div class="grid">
+            <label>Sire <input name="sire" /></label>
+            <label>Sire stud fee (USD) <input type="number" name="sireFee" min="0" step="500" /></label>
+            <label>Sire AEI <button type="button" class="info"
+                data-info="Average Earnings Index — sire's progeny earnings vs avg. ~1.0 = average, 2.0+ = elite.">ⓘ</button>
+              <input type="number" name="sireAEI" min="0" step="0.01" placeholder="1.0 avg, 2.0+ elite" /></label>
+            <label>Dam <input name="dam" /></label>
+            <label>Damsire <input name="damsire" /></label>
+            <label>Dam — # foals <input type="number" name="damFoals" min="0" /></label>
+            <label>Dam — # winners <input type="number" name="damWinners" min="0" /></label>
+            <label>Dam — # black-type <input type="number" name="damBlackType" min="0" /></label>
+            <label>Black-type within 3 generations
+              <select name="blackType3">
+                <option value="">— unknown —</option>
+                <option value="0">None</option>
+                <option value="1">Some (Listed/Group 3)</option>
+                <option value="2">Multiple G2/G3</option>
+                <option value="3">Group/Grade 1 family</option>
+              </select>
+            </label>
+            <label>Nicking rating
+              <select name="nick">
+                <option value="">— unknown —</option>
+                <option value="0">Poor (D, F)</option>
+                <option value="1">Average (C)</option>
+                <option value="2">Good (B+)</option>
+                <option value="3">Excellent (A, A+)</option>
+              </select>
+            </label>
+          </div>
+          <details class="advanced-block">
+            <summary>Advanced pedigree (optional)</summary>
+            <div class="grid">
+              <label>Sire CI (Comparable Index) <input type="number" name="sireCI" min="0" step="0.01" /></label>
+              <label>Damsire AEI <input type="number" name="damsireAEI" min="0" step="0.01" /></label>
+              <label>Dosage Index <button type="button" class="info"
+                  data-info="Speed-vs-stamina balance from chef-de-race ancestors. ~2–4 favors speed, &lt;1 favors stamina/turf.">ⓘ</button>
+                <input type="number" name="dosageIndex" min="0" step="0.1" /></label>
+              <label>Inbreeding (Wright %) <input type="number" name="inbreeding" min="0" step="0.1"
+                  placeholder="0–10%" /></label>
+            </div>
+          </details>
+        </div>
+
+        <!-- PERFORMANCE -->
+        <div class="card">
+          <h2>Performance <span class="hint">leave blank for unraced yearlings</span></h2>
+          <div class="grid">
+            <label>Starts <input type="number" name="pStarts" min="0" /></label>
+            <label>Wins <input type="number" name="pWins" min="0" /></label>
+            <label>Places (2nd/3rd) <input type="number" name="pPlaces" min="0" /></label>
+            <label>Earnings (USD) <input type="number" name="pEarnings" min="0" step="1" /></label>
+            <label>Best speed figure (Beyer/Timeform) <input type="number" name="pSpeed" min="0" /></label>
+            <label>Highest class won
+              <select name="pClass">
+                <option value="">— unknown —</option>
+                <option value="0">Maiden / unraced</option>
+                <option value="1">Allowance / Handicap</option>
+                <option value="2">Listed</option>
+                <option value="3">Group/Grade 3</option>
+                <option value="4">Group/Grade 2</option>
+                <option value="5">Group/Grade 1</option>
+              </select>
+            </label>
+            <label>Soundness history
+              <select name="pSound">
+                <option value="">— unknown —</option>
+                <option value="2">No issues</option>
+                <option value="1">Minor / recovered</option>
+                <option value="0">Recurring</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <!-- AUCTION & PRICE -->
+        <div class="card">
+          <h2>Auction &amp; Price</h2>
+          <div class="grid">
+            <label>Asking / Reserve (USD) <input type="number" name="aReserve" min="0" step="500" /></label>
+            <label>Your max bid (USD) <input type="number" name="aMaxBid" min="0" step="500" /></label>
+            <label>Estimated market value (USD) <input type="number" name="aMarketEst" min="0" step="500" /></label>
+            <label>Consignor reputation
+              <select name="aConsignor">
+                <option value="">— unknown —</option>
+                <option value="2">Top tier</option>
+                <option value="1">Reputable</option>
+                <option value="0">Unknown / new</option>
+              </select>
+            </label>
+            <label>Estimated vet/transport cost (USD) <input type="number" name="aVetCost" min="0" step="100" /></label>
+          </div>
+        </div>
+
+        <!-- INSPECTION (replaces 10 conformation sliders + 5 vet selects) -->
+        <div class="card">
+          <h2>Inspection <span class="hint">only fill these once you've actually seen the horse</span></h2>
+          <div class="grid">
+            <label>Overall conformation impression (1–10) <button type="button" class="info"
+                data-info="1–10 scale: overall read of frame balance, substance, athleticism. 9–10 = elite mover. 5–6 = average. 1–4 = major structural concerns.">ⓘ</button>
+              <input type="range" min="1" max="10" name="cImpression"
+                oninput="this.nextElementSibling.textContent=this.value" /><output>—</output>
+            </label>
+            <label>Walk quality (1–10) <button type="button" class="info"
+                data-info="A free, overstepping walk strongly correlates with athletic gallop.">ⓘ</button>
+              <input type="range" min="1" max="10" name="cWalk"
+                oninput="this.nextElementSibling.textContent=this.value" /><output>—</output>
+            </label>
+            <label>Vet repository finding <button type="button" class="info"
+                data-info="Pre-purchase veterinary inspection result. 'Significant — HARD STOP' triggers automatic PASS recommendation.">ⓘ</button>
+              <select name="vRepository">
+                <option value="">— not yet inspected —</option>
+                <option value="3">Clean</option>
+                <option value="2">Minor (acceptable)</option>
+                <option value="1">Moderate concern</option>
+                <option value="0">Significant — HARD STOP</option>
+              </select>
+            </label>
+            <label>Temperament <button type="button" class="info"
+                data-info="Behavioral profile: Excellent = bold, focused, trainable. Difficult = hard to handle, unreliable.">ⓘ</button>
+              <select name="temperament">
+                <option value="">— unknown —</option>
+                <option value="3">Excellent — bold, focused</option>
+                <option value="2">Good</option>
+                <option value="1">Average</option>
+                <option value="0">Difficult</option>
+              </select>
+            </label>
+          </div>
+
+          <fieldset class="concerns">
+            <legend>Critical concerns <span class="hint">tick any that apply — each lowers the score</span></legend>
+            <label><input type="checkbox" name="flagWind" value="1"> Wind / breathing noise</label>
+            <label><input type="checkbox" name="flagThroat" value="1"> Throat grade III–IV</label>
+            <label><input type="checkbox" name="flagOCD" value="1"> OCD / chips on X-rays</label>
+            <label><input type="checkbox" name="flagHeart" value="1"> Heart murmur / cardio concern</label>
+            <label><input type="checkbox" name="flagSoundness" value="1"> Recurring soundness</label>
+            <label><input type="checkbox" name="flagBehavior" value="1"> Behavior / mind concern</label>
+          </fieldset>
+
+          <details class="advanced-block">
+            <summary>Detailed conformation &amp; vet (optional)</summary>
+            <h4>Conformation traits (1–10)</h4>
+            <div class="grid">
+              <label>Balance / symmetry <input type="range" min="1" max="10" name="cBalance"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Shoulder angle / length <input type="range" min="1" max="10" name="cShoulder"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Hindquarter / hip power <input type="range" min="1" max="10" name="cHip"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Cannon bone / substance <input type="range" min="1" max="10" name="cCannon"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Knees (alignment) <input type="range" min="1" max="10" name="cKnees"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Pasterns (~45–50°) <input type="range" min="1" max="10" name="cPasterns"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Hooves <input type="range" min="1" max="10" name="cHooves"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Neck length / set <input type="range" min="1" max="10" name="cNeck"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+              <label>Topline / back <input type="range" min="1" max="10" name="cTopline"
+                  oninput="this.nextElementSibling.textContent=this.value" /><output>—</output></label>
+            </div>
+            <h4>Individual vet findings</h4>
+            <div class="grid">
+              <label>Repository X-rays <button type="button" class="info"
+                  data-info="Pre-purchase imaging of joints. Clean = no arthritis/OCD visible. Minor findings = manageable. Significant = surgery risk.">ⓘ</button>
+                <select name="vXrays">
+                  <option value="">— unknown —</option>
+                  <option value="3">Clean</option>
+                  <option value="2">Minor findings</option>
+                  <option value="1">Moderate concerns</option>
+                  <option value="0">Significant issues</option>
+                </select>
+              </label>
+              <label>Throat scope <button type="button" class="info"
+                  data-info="Endoscopy for laryngeal function. Grade I = normal. Grade III–IV = recurrent laryngeal neuropathy (wind issue).">ⓘ</button>
+                <select name="vScope">
+                  <option value="">— unknown —</option>
+                  <option value="3">Grade I</option>
+                  <option value="2">Grade II</option>
+                  <option value="1">Grade III</option>
+                  <option value="0">Grade IV / surgery</option>
+                </select>
+              </label>
+              <label>Heart / cardio <button type="button" class="info"
+                  data-info="Echocardiography findings. Excellent = large, efficient heart. Normal = adequate. Both are sound.">ⓘ</button>
+                <select name="vHeart">
+                  <option value="">— unknown —</option>
+                  <option value="2">Excellent</option>
+                  <option value="1">Normal</option>
+                  <option value="0">Murmur / concern</option>
+                </select>
+              </label>
+              <label>Wind / breathing
+                <select name="vWind">
+                  <option value="">— unknown —</option>
+                  <option value="2">Clear</option>
+                  <option value="1">Minor noise</option>
+                  <option value="0">Roarer / treated</option>
+                </select>
+              </label>
+              <label>Eyes / vision
+                <select name="vEyes">
+                  <option value="">— unknown —</option>
+                  <option value="1">Normal</option>
+                  <option value="0">Defect</option>
+                </select>
+              </label>
+            </div>
+            <h4>Physical metrics</h4>
+            <div class="grid">
+              <label>Height (hands) <input type="number" name="height" step="0.1" placeholder="15.2 – 16.3" /></label>
+              <label>Weight (lb) <input type="number" name="weight" step="1" /></label>
+              <label>Heart girth (in) <input type="number" name="girth" step="0.1" /></label>
+              <label>Cannon circumference (in) <input type="number" name="cannonIn" step="0.1" /></label>
+            </div>
+          </details>
+        </div>
+
+        <!-- BREEDING — only visible in matching mode -->
+        <div class="card mare-only">
+          <h2>Breeding — Mare</h2>
+          <div class="grid">
+            <label>Mare age <input type="number" name="bMareAge" min="0" /></label>
+            <label>Foals produced <input type="number" name="bFoalsProduced" min="0" /></label>
+            <label>Winners produced <input type="number" name="bWinnersProduced" min="0" /></label>
+            <label>Black-type produced <input type="number" name="bBTProduced" min="0" /></label>
+            <label>Fertility status
+              <select name="bFertility">
+                <option value="">— unknown —</option>
+                <option value="2">Excellent</option>
+                <option value="1">Average</option>
+                <option value="0">Issues</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="card stallion-only">
+          <h2>Breeding — Stallion</h2>
+          <div class="grid">
+            <label>Stud fee (USD) <input type="number" name="bStudFee" min="0" step="500" /></label>
+            <label>Book size <input type="number" name="bBookSize" min="0" /></label>
+            <label>% Winners from runners <input type="number" name="bPctWinners" min="0" max="100" step="1" /></label>
+            <label>% Stakes winners from runners <input type="number" name="bPctSW" min="0" max="100"
+                step="0.1" /></label>
+            <label>Proven status
+              <select name="bProven">
+                <option value="">— unknown —</option>
+                <option value="2">Proven sire of stakes winners</option>
+                <option value="1">First/second crop, promising</option>
+                <option value="0">Unproven</option>
+              </select>
+            </label>
+            <label>Cross / nick with target mare(s)
+              <select name="bCross">
+                <option value="">— unknown —</option>
+                <option value="3">A+ nick</option>
+                <option value="2">A / B</option>
+                <option value="1">C</option>
+                <option value="0">Poor</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <!-- NOTES -->
+        <div class="card">
+          <h2>Notes</h2>
+          <label class="full">
+            <textarea name="notes" rows="3"
+              placeholder="Walk video impressions, attitude on the shank, repository flags, agent notes..."></textarea>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn primary">💾 Save Horse</button>
+          <button type="button" id="btnReset" class="btn ghost">Reset Form</button>
+          <span class="live-score">Overall Score: <strong id="liveScore">—</strong> / 100</span>
+        </div>
+        <input type="hidden" name="id" />
+      </form>
+    </section>
+
+    <!-- ============== LIST VIEW ============== -->
+    <section id="view-list" class="view">
+      <div class="toolbar">
+        <input id="search" placeholder="Search by name, sire, dam..." />
+        <select id="sortBy">
+          <option value="score">Sort: Overall Score</option>
+          <option value="value">Sort: Value Score (score / price)</option>
+          <option value="name">Sort: Name</option>
+          <option value="price">Sort: Price (low → high)</option>
+          <option value="date">Sort: Date Added</option>
+        </select>
       </div>
+      <div id="horseList" class="horse-list"></div>
+    </section>
 
-      <div class="about-footer">
-        Built with vanilla HTML, CSS &amp; JavaScript — no frameworks, no dependencies, no server.
-        <a href="https://github.com/tgilbert14/HorseProject" target="_blank" rel="noopener">View source on GitHub ↗</a>
+    <!-- ============== COMPARE VIEW ============== -->
+    <section id="view-compare" class="view">
+      <p class="hint">Select 2–4 horses to compare side-by-side.</p>
+      <div id="compareSelect" class="compare-select"></div>
+      <div id="compareTable"></div>
+    </section>
+
+    <!-- ============== DATA VIEW ============== -->
+    <section id="view-data" class="view">
+      <div class="card">
+        <h2>Export</h2>
+        <p>Download all saved horses as CSV (spreadsheet-ready) or JSON (full backup).</p>
+        <button class="btn" id="btnExportCSV">⬇ Export CSV</button>
+        <button class="btn" id="btnExportJSON">⬇ Export JSON</button>
       </div>
+      <div class="card">
+        <h2>Import</h2>
+        <p>Load a previously exported JSON backup. <strong>Replaces current data.</strong></p>
+        <input type="file" id="importFile" accept=".json" />
+      </div>
+      <div class="card danger">
+        <h2>Danger Zone</h2>
+        <button class="btn danger" id="btnClear">🗑 Clear All Data</button>
+      </div>
+    </section>
 
+    <!-- ============== GUIDE VIEW ============== -->
+    <section id="view-guide" class="view">
+      <article class="card guide">
+        <h2>Selection Guide — What the factors mean</h2>
+
+        <h3>Pedigree (≈ 30% of score)</h3>
+        <ul>
+          <li><strong>Sire AEI / CI</strong> — Average Earnings Index measures a sire's progeny earnings against the
+            average (1.0). Elite sires consistently exceed 2.0. CI compares against the mares he's covered.</li>
+          <li><strong>Dam quality</strong> — A productive dam (multiple winners, black-type) is statistically the
+            strongest single predictor in many studies. Look at the second dam too.</li>
+          <li><strong>Black-type within 3 generations</strong> — Italicized/bolded names in the catalogue. The closer
+            up, the better.</li>
+          <li><strong>Nicking</strong> — Statistical compatibility of sire line × broodmare sire line. A+ nicks have
+            produced disproportionate stakes winners.</li>
+          <li><strong>Dosage Index</strong> — Speed-vs-stamina balance derived from chef-de-race ancestors. ~2–4 favors
+            speed, &lt;1 favors stamina/turf.</li>
+          <li><strong>Inbreeding</strong> — Light inbreeding to superior ancestors (3×4, 4×4) can concentrate quality;
+            heavy inbreeding (&gt;6%) raises risk.</li>
+        </ul>
+
+        <h3>Conformation (≈ 20%)</h3>
+        <ul>
+          <li><strong>Balance</strong> — Shoulder length ≈ hip length; horse should look "in three equal parts."</li>
+          <li><strong>Shoulder</strong> — A long, sloping shoulder (~45°) gives stride length and absorbs concussion.
+          </li>
+          <li><strong>Hindquarter</strong> — The engine. Look for muscle, length from hip to hock, and a well-let-down
+            hock.</li>
+          <li><strong>Cannon bone</strong> — Short, dense, and substantial. ≥8" circumference for a yearling colt is a
+            common benchmark.</li>
+          <li><strong>Pasterns</strong> — 45–50°. Too upright = concussion injuries; too sloped = soft-tissue strain.
+          </li>
+          <li><strong>Knees</strong> — Should be flat from the side, not "back at the knee" (predisposes to chips) or
+            "over at the knee."</li>
+          <li><strong>Walk</strong> — A free, overstepping walk strongly correlates with athletic gallop.</li>
+        </ul>
+
+        <h3>Veterinary (≈ 15%)</h3>
+        <ul>
+          <li><strong>Repository X-rays</strong> at major sales — review with a vet. OCD lesions in stifles/hocks are
+            red flags.</li>
+          <li><strong>Throat scope</strong> — Laryngeal Grade I–II is standard; Grade III/IV signals roaring risk.</li>
+          <li><strong>Heart, wind, eyes</strong> — basic soundness checks.</li>
+        </ul>
+
+        <h3>Performance (raced horses)</h3>
+        <ul>
+          <li>Earnings, speed figures (Beyer/Timeform), highest class won, and soundness history.</li>
+          <li>For unraced yearlings/weanlings this section is skipped automatically.</li>
+        </ul>
+
+        <h3>Auction / Value</h3>
+        <ul>
+          <li>The "Value Score" on the list view = Overall Score ÷ price (in $10k units). It surfaces under-the-radar
+            horses whose quality outpaces their reserve.</li>
+        </ul>
+
+        <h3>Breeding</h3>
+        <ul>
+          <li><strong>Mare</strong>: produce record &gt; her own race record. An older mare with multiple winners is
+            more valuable than a young one with no foals.</li>
+          <li><strong>Stallion</strong>: % stakes winners from runners is the cleanest quality metric; book size and
+            stud fee indicate market belief.</li>
+          <li><strong>Cross / nick</strong>: switch the mode toggle to a breeding mode and the cross/nick fields will be
+            weighted heavily.</li>
+        </ul>
+
+        <h3>Five Pillars Workflow (Recommended)</h3>
+        <ul>
+          <li><strong>Score each pillar 1–10</strong> using the rubric in the Five Pillars card.</li>
+          <li><strong>Use Estimated mode</strong> when reviewing historical horses or candidates with incomplete private
+            vet/conformation data.</li>
+          <li><strong>Use Strict verified mode</strong> when you only want scores built from direct entered evidence (no
+            inferred estimates).</li>
+          <li><strong>Interpret outputs</strong>: BUY = strong candidate, SHORTLIST = re-inspect, PASS = risk/value
+            mismatch.</li>
+          <li><strong>Watch Confidence %</strong>: low confidence means you need more direct inputs before final bid
+            decisions.</li>
+        </ul>
+
+        <p class="disclaimer">This tool is a decision aid, not a substitute for a qualified bloodstock agent and
+          veterinarian. Always vet in person before bidding.</p>
+      </article>
+    </section>
+
+  </main>
+
+  <!-- WEIGHTS MODAL -->
+  <div id="weightsModal" class="modal hidden">
+    <div class="modal-body">
+      <h2>Scoring Weights — <span id="weightsModeLabel"></span></h2>
+      <p class="hint">Adjust how much each category contributes to the overall score. Values auto-normalize.</p>
+      <div id="weightsSliders"></div>
+      <div class="form-actions">
+        <button class="btn primary" id="btnSaveWeights">Save</button>
+        <button class="btn ghost" id="btnResetWeights">Reset to defaults</button>
+        <button class="btn ghost" id="btnCloseWeights">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-<script src="presets.js"></script>
-<script src="app.js"></script>
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
-</script>
+  <!-- Click-popover for ⓘ buttons -->
+  <div id="infoPopover" class="info-popover hidden"></div>
+
+  <!-- ABOUT / README MODAL -->
+  <div id="aboutModal" class="modal hidden">
+    <div class="modal-body about-modal-body">
+      <div class="about-header">
+        <span class="logo">🐎</span>
+        <div>
+          <h2>Horse Selector</h2>
+          <p class="about-sub">Auction Buying &amp; Breeding Evaluation Tool</p>
+        </div>
+        <button class="btn ghost about-close" id="btnCloseAbout">✕ Close</button>
+      </div>
+
+      <div class="about-content">
+
+        <p>A standalone, browser-based decision tool for evaluating racehorses at auction or for
+          breeding selection. No installation, no account, no server — data saved locally in your browser.</p>
+
+        <div class="about-modes">
+          <div class="about-mode-card">
+            <div class="about-mode-icon">🏷️</div>
+            <strong>Auction Buy</strong>
+            <p>Score a yearling, weanling, or racing prospect before bidding</p>
+          </div>
+          <div class="about-mode-card">
+            <div class="about-mode-icon">🐴</div>
+            <strong>Breeding — Mare</strong>
+            <p>Evaluate produce record, fertility, and pedigree for pairing</p>
+          </div>
+          <div class="about-mode-card">
+            <div class="about-mode-icon">⭐</div>
+            <strong>Breeding — Stallion</strong>
+            <p>Compare by fee, progeny stats, and nick with your mares</p>
+          </div>
+        </div>
+
+        <h3>Scoring Categories</h3>
+        <table class="about-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Auction Weight</th>
+              <th>What it measures</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Pedigree</td>
+              <td>~30%</td>
+              <td>Sire AEI, dam produce, black-type proximity, nicking grade, dosage, inbreeding</td>
+            </tr>
+            <tr>
+              <td>Conformation</td>
+              <td>~22%</td>
+              <td>10 structural traits rated 1–10 (balance, shoulder, hip, cannon, knees, pasterns, hooves, neck,
+                topline, walk)</td>
+            </tr>
+            <tr>
+              <td>Veterinary</td>
+              <td>~15%</td>
+              <td>Repository X-rays, throat scope grade, heart, wind, eyes</td>
+            </tr>
+            <tr>
+              <td>Performance</td>
+              <td>~8%</td>
+              <td>Starts/wins/places, earnings, Beyer/Timeform speed figure, class level, soundness</td>
+            </tr>
+            <tr>
+              <td>Auction / Price</td>
+              <td>~10%</td>
+              <td>Reserve vs market estimate (generates Value Score), consignor reputation</td>
+            </tr>
+            <tr>
+              <td>Physical</td>
+              <td>~5%</td>
+              <td>Height, girth, cannon circumference vs ideal ranges</td>
+            </tr>
+            <tr>
+              <td>Temperament</td>
+              <td>~5%</td>
+              <td>Attitude, trainability</td>
+            </tr>
+            <tr>
+              <td>Foaling Date</td>
+              <td>~5%</td>
+              <td>Jan–Mar foals favored (universal Jan 1 birthday rule)</td>
+            </tr>
+            <tr>
+              <td>Breeding</td>
+              <td>0% (auction)</td>
+              <td>Mare produce record / stallion progeny stats (weighted higher in breeding modes)</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Key Features</h3>
+        <ul class="about-features">
+          <li><strong>Real Horse Presets</strong> — Load verified public-record data for 22 famous horses (Secretariat,
+            Frankel, Winx, etc.) with one click</li>
+          <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
+          <li><strong>Value Score</strong> — Overall Score ÷ price, surfacing quality below market price</li>
+          <li><strong>Side-by-side Compare</strong> — Select 2–4 horses; best/worst values highlighted automatically
+          </li>
+          <li><strong>CSV Export</strong> — Spreadsheet-ready export including all sub-scores for Excel or Google Sheets
+          </li>
+          <li><strong>JSON Backup</strong> — Full backup and restore of all records</li>
+          <li><strong>Custom Weights</strong> — Adjust how much each category counts per evaluation mode (⚖ Weights
+            button)</li>
+          <li><strong>Selection Guide tab</strong> — Built-in reference explaining every factor and the research behind
+            it</li>
+        </ul>
+
+        <h3>Data &amp; Privacy</h3>
+        <p>All data is stored in your <strong>browser's localStorage</strong>. Nothing is sent to any server.
+          Use <em>Export JSON</em> regularly as a backup — clearing browser data will erase saved horses.</p>
+
+        <h3>Preset Data Sources</h3>
+        <p>Preset horses use <strong>public-record data only</strong>: Jockey Club, Weatherbys, Equibase,
+          Racing Post, BHA, and publicly advertised stud farm fee schedules.
+          Conformation, vet findings, and temperament are intentionally blank — those require in-person evaluation.</p>
+
+        <div class="about-disclaimer">
+          ⚠️ This tool is a structured decision aid, not a substitute for a qualified bloodstock agent
+          and veterinarian. Always conduct an in-person inspection and independent veterinary review
+          before bidding at auction.
+        </div>
+
+        <div class="about-footer">
+          Built with vanilla HTML, CSS &amp; JavaScript — no frameworks, no dependencies, no server.
+          <a href="https://github.com/tgilbert14/HorseProject" target="_blank" rel="noopener">View source on GitHub
+            ↗</a>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="presets.js"></script>
+  <script src="app.js"></script>
+  <script>
+    if('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
 </body>
+
 </html>
