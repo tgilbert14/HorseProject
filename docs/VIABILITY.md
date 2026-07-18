@@ -255,12 +255,15 @@ Cheap, unambiguous trust fixes that move the app toward "wantable" regardless of
   required-field-reduction pass, and barn-side quick-capture optimizations.
 
 ### Phase 2 — Trust & the one defensible feature
-- 🚧 **Real price-sanity check — started.** A gauge + below/within/above bands compare the
-  user's reserve to a sale's **real published median** ("is this price normal *for this
-  sale*?", explicitly not a per-horse appraisal). The engine, UI, list-card chips and
-  glossary/Guide copy are shipped; the benchmark dataset (`sales-data.js`) is being expanded
-  from an initial verified sale to all the major sales/books. This is the single
-  differentiator worth a thin data feed.
+- ✅ **Real price-sanity check — shipped.** A log-scale gauge + below/within/above bands
+  compare the user's reserve to a sale's **real published median** ("is this price normal
+  *for this sale*?", explicitly not a per-horse appraisal). Grounded in a **sourced dataset
+  of 13 sales/books** (`sales-data.js`): Keeneland September (overall + Book 1 + Book 2),
+  Keeneland November, Fasig-Tipton Saratoga & July, OBS March & Spring, Tattersalls October
+  (overall + Book 1), Goffs Orby, Arqana August, Magic Millions — 2024 figures with citations
+  and native-currency support (guineas / EUR / AUD). The book-level data is the teaching
+  payload: a $70k price is "typical" for Keeneland September overall but "well below typical"
+  for Book 1. This is the single differentiator worth a thin data feed.
 - **Reposition genetics/soundness/performance from *recompute* to *ingest*:** "paste your
   TrueNicks/eNicks grade, your Beyer/BRIS figure, your vet's repository read" — record what
   your calibrated source told you, don't fake a worse version.

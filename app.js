@@ -1008,9 +1008,11 @@ function renderPriceSanity(currentHorse) {
   const verdict=(price!=null&&price>0&&band)
     ? `<div class="ps-verdict ${band.cls}"><span class="ps-band">${band.label}</span> ${escapeHtml(band.note)}</div>`
     :'<p class="ps-hint">Enter a reserve or market estimate above to see where this price sits on the scale.</p>';
+  const approxNote=bench.confidence&&bench.confidence!=='high'
+    ? ' (this sale’s median is partly derived — treat as approximate)':'';
   el.innerHTML=line+gauge+verdict+
     `<p class="ps-caveat">This asks only “is the price normal <em>for this sale</em>?” — not whether it’s right for <em>this horse</em>.
-      A standout individual is worth well above the median; a plain one, well below. Sale figures: ${escapeHtml(bench.source)}.</p>`;
+      A standout individual is worth well above the median; a plain one, well below. ${escapeHtml(bench.year)} figures: ${escapeHtml(bench.source)}${approxNote}.</p>`;
 }
 
 // ---------- Compare view ----------
