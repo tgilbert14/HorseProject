@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.11.0'; // bump this each release to trigger update prompt
+const APP_VERSION='2.0.2'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -838,10 +838,10 @@ function renderList() {
           ${h.aReserve? `<div class="price">${fmtUSD(h.aReserve)}${ps.band? ` <span class="ps-chip ${ps.band.cls}">${ps.band.label}</span>`:''}</div>`:''}
           <div class="breakdown">${breakdown}</div>
           <div class="actions">
-            <button class="btn" onclick="editHorse('${h.id}')">✏ Edit</button>
-            <button class="btn" onclick="openReport('${h.id}')">📋 Report</button>
-            <button class="btn" onclick="duplicateHorse('${h.id}')">⧉ Duplicate</button>
-            <button class="btn danger" onclick="deleteHorse('${h.id}')">🗑</button>
+            <button class="btn" onclick="editHorse('${h.id}')">Edit</button>
+            <button class="btn" onclick="openReport('${h.id}')">Report</button>
+            <button class="btn" onclick="duplicateHorse('${h.id}')">Duplicate</button>
+            <button class="btn danger" onclick="deleteHorse('${h.id}')" aria-label="Delete ${escapeHtml(h.name||'horse')}">Delete</button>
           </div>
         </div>
       </div>`;
@@ -874,8 +874,8 @@ function coatHex(color) {
 }
 function horseInitials(name) {
   const s=String(name||'').trim();
-  if(!s) return '🐎';
-  return s.split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase()||'🐎';
+  if(!s) return 'HS';
+  return s.split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase()||'HS';
 }
 function coatPlaceholder(cls,color,name,hidden) {
   return `<div class="${cls}" style="${hidden? 'display:none;':''}background:linear-gradient(135deg, ${coatHex(color)}, #171717)">`
@@ -987,7 +987,7 @@ function buildReport(h) {
   return `<article class="report-doc">
     ${h._shared? '<div class="rp-shared no-print">📨 <strong>Shared with you.</strong> Someone sent you this horse to review — it isn’t saved on your device.</div>':''}
     <header class="rp-head">
-      <div class="rp-title"><span class="rp-logo">🐎</span>
+      <div class="rp-title"><span class="rp-logo">HS</span>
         <div><h2>${escapeHtml(h.name||'Unnamed horse')}</h2>
         <p class="rp-sub">Due-diligence summary · <em>By</em> ${escapeHtml(ped)}</p></div></div>
       <div class="rp-meta">${metaBits||'&nbsp;'}</div>
@@ -1088,25 +1088,25 @@ function decodeSharedHorse(s) {
 // Each pillar explains WHAT to look at and WHY, shows your current read, and — most
 // importantly for a first-time buyer — flags which key fields you still need to assess it.
 const PILLAR_TEACH=[
-  {key: 'pillarGenetics',label: 'Genetics & Pedigree',icon: '🧬',
-    why: 'Who the sire and dam are, and what the family has already produced. The single best clue you have on a young horse — but on its own still a weak predictor, so weigh it, don’t worship it.',
-    look: 'Look for a productive dam (winners & black-type), a proven sire, and black-type close up in the first 2–3 generations.',
+  {key: 'pillarGenetics',label: 'Genetics & Pedigree',icon: '01',
+    why: 'Sire, dam, and family production provide useful context for a young horse. Pedigree is informative but not predictive on its own.',
+    look: 'Review the dam’s winners and black-type horses, sire AEI, nick rating, and black-type within 2–3 generations.',
     fields: [['sire','sire'],['sireAEI','sire AEI'],['dam','dam'],['damWinners','dam’s winners'],['blackType3','black-type in family'],['nick','nick rating']]},
-  {key: 'pillarSoundness',label: 'Physical Soundness',icon: '🦴',
-    why: 'The frame, the walk, and the vet’s repository read. This is the pillar that can end a purchase — a serious x-ray finding is a HARD STOP. It needs your own eyes and your own vet.',
-    look: 'Look for a free, athletic walk, a balanced frame, and a clean or only-minor vet repository. You must see the horse in person for this.',
+  {key: 'pillarSoundness',label: 'Physical Soundness',icon: '02',
+    why: 'This section combines conformation, walk quality, and the veterinary repository review. Significant findings may rule out a purchase.',
+    look: 'Assess the horse in person and have an independent veterinarian review the repository and any concerns.',
     fields: [['cImpression','conformation impression'],['cWalk','walk quality'],['vRepository','vet repository read']]},
-  {key: 'pillarPerformance',label: 'Performance',icon: '🏁',
-    why: 'What the horse has actually done on the track — races, wins, earnings, speed figures, class. Blank for an unraced yearling, and that’s completely normal.',
-    look: 'Look for wins and places relative to starts, a strong best speed figure (Beyer/Timeform), and the highest class of race won.',
+  {key: 'pillarPerformance',label: 'Performance',icon: '03',
+    why: 'Starts, results, earnings, speed figures, and class provide evidence for raced horses. Leave this section blank for an unraced horse.',
+    look: 'Review wins and placings relative to starts, the best speed figure, highest class won, and soundness history.',
     fields: [['pStarts','starts'],['pWins','wins'],['pEarnings','earnings'],['pClass','highest class']]},
-  {key: 'pillarValue',label: 'Price & Value',icon: '⚖️',
-    why: 'Is the price sane for this kind of horse? A great horse at a crazy price can be a worse buy than a solid one at a fair price. (Heads-up: the built-in ratio favours cheaper horses — sanity-check it against real sale prices.)',
-    look: 'Look for a reserve that lines up with what similar pedigrees are making at this sale, and a reputable consignor.',
+  {key: 'pillarValue',label: 'Price & Value',icon: '04',
+    why: 'This section compares the asking price with your estimate and the published median for the selected sale. It is not a horse-specific appraisal.',
+    look: 'Review the reserve, your maximum bid, comparable sale prices, expected costs, and consignor history.',
     fields: [['aReserve','reserve / price'],['aMarketEst','your market estimate'],['aConsignor','consignor reputation']]},
-  {key: 'pillarMind',label: 'Mind & Trainability',icon: '🧠',
-    why: 'Temperament and, for youngsters, an early foaling date (a February foal has a head start on a May one). A professional, focused attitude lowers training cost and injury risk.',
-    look: 'Look for a bold but trainable attitude on the shank, and — for 2yo prospects — an early-in-the-year foaling date.',
+  {key: 'pillarMind',label: 'Mind & Trainability',icon: '05',
+    why: 'Temperament affects handling and training. Foaling date also matters for younger horses because official age is based on January 1.',
+    look: 'Record observed behavior and foaling date. Do not infer temperament from pedigree or photographs.',
     fields: [['temperament','temperament'],['foalDate','foaling date']]}
 ];
 
@@ -1154,7 +1154,7 @@ function renderPillarChecklist(currentHorse) {
   }).join('');
 }
 
-// ---------- Learn from the legends (presets as an education tool, NOT a leaderboard) ----------
+// ---------- Example records (presets for understanding completed fields) ----------
 function legendInsights(pr) {
   const out=[];
   const money=n => '$'+Math.round(n).toLocaleString('en-US');
@@ -1177,10 +1177,9 @@ function legendInsights(pr) {
   }
   if(pr.aReserve) {
     let t=`Bought for ${money(pr.aReserve)} as a young horse`;
-    if(pr.aReserve<=60000) t+=' — a famous bargain, and proof that price and class don’t always match';
     out.push({p: 'Price & Value',t: t+'.'});
   } else if(pr.bStudFee) {
-    out.push({p: 'Price & Value',t: `Now commands a stud fee around ${money(pr.bStudFee)} — the market’s verdict on a proven sire.`});
+    out.push({p: 'Price & Value',t: `Advertised stud fee recorded at approximately ${money(pr.bStudFee)}.`});
   }
   return out;
 }
@@ -1192,7 +1191,7 @@ function renderLegendsPanel() {
   const idx=parseInt(sel.value,10);
   const pr=isNaN(idx)? null:HORSE_PRESETS[idx];
   if(!pr) {
-    panel.innerHTML='<p class="hint">Pick a legend above to see what makes an elite page — and why.</p>';
+    panel.innerHTML='<p class="hint">Choose an example above to review its public-record data.</p>';
     return;
   }
   const insights=legendInsights(pr);
@@ -1209,9 +1208,8 @@ function renderLegendsPanel() {
         <ul class="legend-insights">
           ${insights.map(i => `<li><span class="li-tag">${escapeHtml(i.p)}</span><span>${escapeHtml(i.t)}</span></li>`).join('')}
         </ul>
-        <p class="legend-foot">This is what an <strong>elite</strong> page looks like — a benchmark to learn from,
-          not a bar your prospect has to clear. Most good, sound, sensibly-priced horses score nowhere near this,
-          and that’s completely normal.</p>
+        <p class="legend-foot">Use this example to understand how public-record fields affect the summary.
+          It is not a comparison to your prospect and does not predict future performance.</p>
       </div>
     </div>`;
 }
@@ -1372,7 +1370,7 @@ function buildShortlist(items,mode) {
   }).join('');
   const modeLabel=modeSel.options[modeSel.selectedIndex].text;
   return `<div class="report-doc sl-doc">
-    <header class="rp-head"><div class="rp-title"><span class="rp-logo">🐎</span>
+    <header class="rp-head"><div class="rp-title"><span class="rp-logo">HS</span>
       <div><h2>Sale-day shortlist</h2>
       <p class="rp-sub">${items.length} horse${items.length===1? '':'s'} · ${escapeHtml(modeLabel)} · on-paper reads from your inputs</p></div></div></header>
     <table class="rp-table sl-table"><thead><tr>
@@ -1710,7 +1708,8 @@ function openWeights() {
 
   function applyTheme(light,persist) {
     document.body.classList.toggle('light',light);
-    btn.textContent=light? '🌙 Dark':'☀ Light';
+    btn.textContent=light? 'Dark theme':'Light theme';
+    btn.setAttribute('aria-label',light? 'Switch to dark theme':'Switch to light theme');
     if(persist) {try {localStorage.setItem('theme',light? 'light':'dark');} catch {}}
   }
 
@@ -1758,7 +1757,7 @@ document.getElementById('countSaved').textContent=loadHorses().length;
 // Don't call updateLiveScore() here — only call it after user loads/enters data
 // This prevents default pillar values from showing before any horse is selected
 
-// Populate the "Learn from the legends" selector and wire it up.
+// Populate the example-record selector and wire it up.
 (function initLegends() {
   const sel=document.getElementById('legendSelect');
   if(!sel||typeof HORSE_PRESETS==='undefined') return;
