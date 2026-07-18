@@ -1427,8 +1427,15 @@ function parseBulk(text) {
     const h={name};
     if(parts[1]) h.sire=parts[1].trim();
     if(parts[2]) h.dam=parts[2].trim();
-    const pr=num(parts[3]);
-    if(pr!=null) h.aReserve=pr;
+    // Price is the 4th field onward. Join the tail so a comma-separated thousands
+    // like "$120,000" (which the comma-split broke apart) is reassembled; then
+    // tolerate "$", commas, spaces, and k/m suffixes.
+    let priceStr=parts.slice(3).join('').replace(/[$,\s]/g,'').toLowerCase();
+    let mult=1;
+    if(/k$/.test(priceStr)) {mult=1000; priceStr=priceStr.slice(0,-1);}
+    else if(/m$/.test(priceStr)) {mult=1000000; priceStr=priceStr.slice(0,-1);}
+    const pr=num(priceStr);
+    if(pr!=null) h.aReserve=pr*mult;
     return h;
   }).filter(Boolean);
 }
