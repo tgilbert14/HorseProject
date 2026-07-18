@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.8.0'; // bump this each release to trigger update prompt
+const APP_VERSION='1.9.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -43,8 +43,16 @@ function loadHorses() {
   catch {return [];}
 }
 function saveHorses(arr) {
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));
+  try {
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(arr));
+  } catch(err) {
+    // Quota exceeded or storage blocked (e.g. private mode). Warn instead of failing silently.
+    alert('Could not save — your browser storage may be full or disabled.\n\n'
+      +'Export a JSON backup from the Import / Export tab, then clear space, so you don\'t lose your horses.');
+    return false;
+  }
   document.getElementById('countSaved').textContent=arr.length;
+  return true;
 }
 function loadWeights(mode) {
   try {
@@ -263,11 +271,6 @@ const PILLAR_KEYS=[
 function avgNonNull(values) {
   const kept=values.filter(v => v!=null);
   return kept.length? avg(kept):null;
-}
-
-function toRange10(v100) {
-  if(v100==null) return null;
-  return clamp(v100/10,1,10);
 }
 
 function decisionLabel(score,vetHardStop) {
@@ -898,6 +901,7 @@ function buildReport(h) {
   }
 
   return `<article class="report-doc">
+    ${h._shared? '<div class="rp-shared no-print">📨 <strong>Shared with you.</strong> Someone sent you this horse to review — it isn’t saved on your device.</div>':''}
     <header class="rp-head">
       <div class="rp-title"><span class="rp-logo">🐎</span>
         <div><h2>${escapeHtml(h.name||'Unnamed horse')}</h2>
@@ -932,26 +936,69 @@ function buildReport(h) {
   </article>`;
 }
 
-window.openReport=function(id) {
-  const h=loadHorses().find(x => x.id===id);
-  if(!h) return;
+let _reportHorse=null;
+function renderReport(h) {
+  _reportHorse=h;
   const modal=document.getElementById('reportModal');
   const content=document.getElementById('reportContent');
   if(!modal||!content) return;
   content.innerHTML=buildReport(h);
   modal.classList.remove('hidden');
+}
+window.openReport=function(id) {
+  const h=loadHorses().find(x => x.id===id);
+  if(h) renderReport(h);
 };
+
+// Encode a horse into a shareable URL (no backend — the data rides in the link hash).
+function shareUrl(h) {
+  const clean={...h};
+  delete clean.id; delete clean.created; delete clean.updated; delete clean._shared;
+  const bytes=new TextEncoder().encode(JSON.stringify(clean));
+  let bin=''; bytes.forEach(b => bin+=String.fromCharCode(b));
+  // URL-safe base64 (base64url) so the payload survives intact in the link fragment.
+  const b64=btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  return location.href.split('#')[0]+'#horse='+b64;
+}
+function decodeSharedHorse(s) {
+  let b64=String(s).replace(/-/g,'+').replace(/_/g,'/');
+  while(b64.length%4) b64+='=';
+  const bin=atob(b64);
+  const bytes=Uint8Array.from(bin,c => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
 
 (function initReport() {
   const modal=document.getElementById('reportModal');
   if(!modal) return;
   const close=document.getElementById('btnCloseReport');
   const print=document.getElementById('btnPrintReport');
+  const share=document.getElementById('btnShareReport');
   if(close) close.addEventListener('click',() => modal.classList.add('hidden'));
   if(print) print.addEventListener('click',() => window.print());
+  if(share) share.addEventListener('click',async () => {
+    if(!_reportHorse) return;
+    const url=shareUrl(_reportHorse);
+    let ok=false;
+    try {await navigator.clipboard.writeText(url); ok=true;} catch {}
+    if(!ok) {
+      try {
+        const t=document.createElement('textarea');
+        t.value=url; t.style.position='fixed'; t.style.opacity='0';
+        document.body.appendChild(t); t.select(); ok=document.execCommand('copy'); t.remove();
+      } catch {}
+    }
+    const orig=share.dataset.orig||(share.dataset.orig=share.textContent);
+    share.textContent=ok? '✓ Link copied':'⚠ Copy failed';
+    setTimeout(() => {share.textContent=orig;},1900);
+  });
   modal.addEventListener('click',e => {if(e.target===modal) modal.classList.add('hidden');});
-  document.addEventListener('keydown',e => {if(e.key==='Escape') modal.classList.add('hidden');});
 })();
+
+// If the page was opened via a shared link (#horse=…), show that horse's report read-only.
+// NOTE: opening a shared horse's report is deferred to the very end of this file — it
+// calls buildReport(), which reads consts (PILLAR_TEACH, DUE_DILIGENCE) declared below,
+// so it must run after they're initialized.
 
 // ---------- Guided read: the 5-pillar teaching checklist ----------
 // Each pillar explains WHAT to look at and WHY, shows your current read, and — most
@@ -1421,19 +1468,27 @@ function openWeights() {
 // ---------- Theme toggle (light / dark) ----------
 (function initTheme() {
   const btn=document.getElementById('btnTheme');
-  // Respect saved preference; default to light mode
-  const saved=localStorage.getItem('theme');
-  const preferLight=saved? saved==='light':true;
+  const saved=localStorage.getItem('theme'); // 'light' | 'dark' | null
+  const mq=window.matchMedia? window.matchMedia('(prefers-color-scheme: dark)'):null;
+  // No saved choice → follow the OS (default light only if the OS isn't set to dark).
+  const startLight=saved? saved==='light':!(mq&&mq.matches);
 
-  function applyTheme(light) {
+  function applyTheme(light,persist) {
     document.body.classList.toggle('light',light);
     btn.textContent=light? '🌙 Dark':'☀ Light';
-    localStorage.setItem('theme',light? 'light':'dark');
+    if(persist) {try {localStorage.setItem('theme',light? 'light':'dark');} catch {}}
   }
 
-  applyTheme(preferLight);
+  applyTheme(startLight,false);
   btn.addEventListener('click',() =>
-    applyTheme(!document.body.classList.contains('light')));
+    applyTheme(!document.body.classList.contains('light'),true));
+
+  // Keep following the OS until the user picks a theme explicitly.
+  if(!saved&&mq) {
+    const onChange=e => {if(!localStorage.getItem('theme')) applyTheme(!e.matches,false);};
+    if(mq.addEventListener) mq.addEventListener('change',onChange);
+    else if(mq.addListener) mq.addListener(onChange);
+  }
 })();
 
 // ---------- About modal ----------
@@ -1590,4 +1645,69 @@ renderPriceSanity({});
   });
 
   window.addEventListener('scroll',() => pop.classList.add('hidden'),{passive: true});
+})();
+
+// ---------- Accessibility: modal focus management + trap, info-button labels ----------
+(function initModalA11y() {
+  document.querySelectorAll('button.info').forEach(b => {
+    if(!b.getAttribute('aria-label')) b.setAttribute('aria-label','More information');
+  });
+  const pop=document.getElementById('infoPopover');
+  if(pop) pop.setAttribute('role','tooltip');
+
+  const modals=[...document.querySelectorAll('.modal')];
+  const SEL='a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+  const lastFocus=new WeakMap();
+
+  modals.forEach(modal => {
+    new MutationObserver(() => {
+      if(!modal.classList.contains('hidden')) {
+        lastFocus.set(modal,document.activeElement);
+        const target=modal.querySelector('.about-close,#btnCloseReport,#btnCloseGlossary,#btnCloseAbout,#btnCloseWeights')
+          ||modal.querySelector(SEL);
+        if(target) setTimeout(() => {try {target.focus();} catch {}},30);
+      } else {
+        const prev=lastFocus.get(modal);
+        if(prev&&prev.focus) {try {prev.focus();} catch {}}
+      }
+    }).observe(modal,{attributes: true,attributeFilter: ['class']});
+  });
+
+  document.addEventListener('keydown',e => {
+    const open=modals.find(m => !m.classList.contains('hidden'));
+    if(!open) return;
+    if(e.key==='Escape') {open.classList.add('hidden'); return;}
+    if(e.key!=='Tab') return;
+    const f=[...open.querySelectorAll(SEL)].filter(el => el.offsetParent!==null);
+    if(!f.length) return;
+    const first=f[0],last=f[f.length-1];
+    if(e.shiftKey&&document.activeElement===first) {e.preventDefault(); last.focus();}
+    else if(!e.shiftKey&&document.activeElement===last) {e.preventDefault(); first.focus();}
+  });
+})();
+
+// ---------- First-run welcome (only for brand-new users) ----------
+(function initWelcome() {
+  const card=document.getElementById('welcomeCard');
+  if(!card) return;
+  const dismissed=localStorage.getItem('welcomeDismissed')==='1';
+  const hasHorses=loadHorses().length>0;
+  const hasDraft=!!localStorage.getItem('horse-draft');
+  const shared=/[#&]horse=/.test(location.hash||'');
+  if(!dismissed&&!hasHorses&&!hasDraft&&!shared) card.classList.remove('hidden');
+  const btn=document.getElementById('btnCloseWelcome');
+  if(btn) btn.addEventListener('click',() => {
+    card.classList.add('hidden');
+    try {localStorage.setItem('welcomeDismissed','1');} catch {}
+  });
+})();
+
+// ---------- Open a shared horse's report (must run last — depends on consts above) ----------
+(function initSharedHorse() {
+  const m=(location.hash||'').match(/[#&]horse=([^&]+)/);
+  if(!m) return;
+  try {
+    const h=decodeSharedHorse(decodeURIComponent(m[1]));
+    if(h&&typeof h==='object'&&h.name) {h._shared=true; renderReport(h);}
+  } catch {/* malformed link — ignore */}
 })();

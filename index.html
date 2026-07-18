@@ -53,6 +53,21 @@
     <!-- ============== FORM VIEW ============== -->
     <section id="view-form" class="view active">
 
+      <div id="welcomeCard" class="card welcome-card hidden">
+        <button class="welcome-close" id="btnCloseWelcome" aria-label="Dismiss welcome">✕</button>
+        <h2>👋 New here? Start with these three</h2>
+        <ol class="welcome-steps">
+          <li><strong>See what great looks like.</strong> Load a legend below (try Frankel) and read the
+            <em>Learn from the legends</em> card.</li>
+          <li><strong>Try your own horse.</strong> Click <em>Enter your own horse</em> — the <em>guided read</em>
+            shows what to look at, why it matters, and what you still need.</li>
+          <li><strong>Get a second opinion.</strong> Save it, then hit <em>Report</em> to print or send a
+            due-diligence sheet to your agent &amp; vet.</li>
+        </ol>
+        <p class="welcome-note">A notebook that organises your judgement and teaches the basics — not a crystal
+          ball. Always inspect and vet in person before bidding.</p>
+      </div>
+
       <div class="card preset-card">
         <h2>Quick Load — Real Horse Presets <span class="hint">verified public-record data</span></h2>
         <div class="preset-row">
@@ -655,7 +670,7 @@
   </main>
 
   <!-- WEIGHTS MODAL -->
-  <div id="weightsModal" class="modal hidden">
+  <div id="weightsModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Scoring weights">
     <div class="modal-body">
       <h2>Scoring Weights — <span id="weightsModeLabel"></span></h2>
       <p class="hint">Adjust how much each category contributes to the overall score. Values auto-normalize.</p>
@@ -672,7 +687,7 @@
   <div id="infoPopover" class="info-popover hidden"></div>
 
   <!-- ABOUT / README MODAL -->
-  <div id="aboutModal" class="modal hidden">
+  <div id="aboutModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="About Horse Selector">
     <div class="modal-body about-modal-body">
       <div class="about-header">
         <span class="logo">🐎</span>
@@ -818,7 +833,7 @@
   </div>
 
   <!-- GLOSSARY MODAL -->
-  <div id="glossaryModal" class="modal hidden">
+  <div id="glossaryModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Glossary of terms">
     <div class="modal-body about-modal-body">
       <div class="about-header">
         <span class="logo">📖</span>
@@ -923,11 +938,12 @@
   </div>
 
   <!-- DUE-DILIGENCE REPORT MODAL -->
-  <div id="reportModal" class="modal hidden">
+  <div id="reportModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Due-diligence report">
     <div class="modal-body report-modal-body">
       <div class="report-toolbar no-print">
         <span class="report-toolbar-title">📋 Due-diligence report</span>
         <div class="report-toolbar-actions">
+          <button class="btn" id="btnShareReport">🔗 Copy link</button>
           <button class="btn primary" id="btnPrintReport">🖨 Print / Save as PDF</button>
           <button class="btn ghost" id="btnCloseReport">✕ Close</button>
         </div>
