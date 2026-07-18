@@ -9,6 +9,11 @@ pros. That conclusion is a **hypothesis about people.** This kit tests it cheapl
 
 You can run the whole thing in about **two weeks, part-time, for ~$150 in incentives.**
 
+> 🖨 **Print-and-fill field pack:** a ready-to-print PDF of the moderator sheet, a fillable
+> per-participant log, and the participant survey is in
+> **[`user-validation-field-pack.pdf`](./user-validation-field-pack.pdf)** (source:
+> `user-validation-field-pack.html`). Print one log sheet per participant.
+
 ---
 
 ## 1. The one question this test answers
