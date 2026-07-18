@@ -82,12 +82,15 @@
           </div>
           <div class="pillar-summary">
             <span>5-Pillar Score: <strong id="pillarScore">—</strong> / 100</span>
-            <span>Decision: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
-            <span>Confidence: <strong id="pillarConfidence">—</strong></span>
+            <span>On-paper read: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
+            <span>Data filled: <strong id="pillarConfidence">—</strong> <button type="button" class="info"
+                data-info="How many of the 9 categories you've entered data for — a measure of how complete YOUR inputs are, not a probability of racing success.">ⓘ</button></span>
           </div>
           <p class="hint hero-hint">
-            Confidence rises as you add real data. A low-confidence BUY is just a hypothesis —
-            don't bid on it without inspection &amp; vet review.
+            This score is a structured roll-up of <em>the data you entered</em> — not a prediction of racing
+            success. Even the strongest signals available at the yearling stage explain only a small share of
+            how a horse turns out, so treat this as a checklist that organizes your judgement, not a verdict.
+            Never bid without in-person inspection and an independent vet review.
           </p>
 
           <div class="benchmark-head">
@@ -147,7 +150,7 @@
           <h2>Identity</h2>
           <div class="identity-row">
             <div class="photo-preview-wrap">
-              <img id="photoPreview" class="photo-preview" alt="" />
+              <img id="photoPreview" class="photo-preview" alt="" referrerpolicy="no-referrer" />
               <div id="photoPlaceholder" class="photo-preview-placeholder">🐎</div>
             </div>
             <div class="identity-fields grid">
@@ -557,8 +560,10 @@
 
         <h3>Auction / Value</h3>
         <ul>
-          <li>The "Value Score" on the list view = Overall Score ÷ price (in $10k units). It surfaces under-the-radar
-            horses whose quality outpaces their reserve.</li>
+          <li>The "Value Score" on the list view = Overall Score ÷ price (in $10k units) — a rough quality-per-dollar
+            ratio. It surfaces cheaper horses whose score outpaces their reserve, but note it structurally favors the
+            lowest-priced horse and is <em>not</em> anchored to comparable sale prices (see "How to read the score
+            honestly" below).</li>
         </ul>
 
         <h3>Breeding</h3>
@@ -574,18 +579,33 @@
         <h3>Five Pillars Workflow (Recommended)</h3>
         <ul>
           <li><strong>Score each pillar 1–10</strong> using the rubric in the Five Pillars card.</li>
-          <li><strong>Use Estimated mode</strong> when reviewing historical horses or candidates with incomplete private
-            vet/conformation data.</li>
-          <li><strong>Use Strict verified mode</strong> when you only want scores built from direct entered evidence (no
-            inferred estimates).</li>
-          <li><strong>Interpret outputs</strong>: BUY = strong candidate, SHORTLIST = re-inspect, PASS = risk/value
-            mismatch.</li>
-          <li><strong>Watch Confidence %</strong>: low confidence means you need more direct inputs before final bid
-            decisions.</li>
+          <li><strong>The score rolls up the data YOU entered.</strong> Blank categories are excluded, not counted as
+            zero — so a sparse record can still show a high number off very little information.</li>
+          <li><strong>Interpret the on-paper read as a lean, not a verdict</strong>: it flags where a page looks strong,
+            average, or weak so you know what to dig into with your agent and vet — it is not a bid instruction.</li>
+          <li><strong>Watch "Data filled"</strong>: it tells you how many of the 9 categories you've populated. It is a
+            completeness gauge for your own inputs, <em>not</em> a probability that the horse will run well.</li>
         </ul>
 
-        <p class="disclaimer">This tool is a decision aid, not a substitute for a qualified bloodstock agent and
-          veterinarian. Always vet in person before bidding.</p>
+        <h3>How to read the score honestly</h3>
+        <ul>
+          <li><strong>No score predicts a racehorse.</strong> In published work, even the single best signal available at
+            the yearling stage — the sale price itself, which already bakes in every agent's and vet's opinion —
+            correlates with later race ratings at only about r≈0.36 (explaining ~13% of the variation). Racing ability
+            is also only weakly heritable. A hand-built score cannot beat that ceiling, so treat any number here as a
+            way to <em>organize</em> your read, never as a forecast.</li>
+          <li><strong>The "Value Score" is a rough quality-per-dollar ratio, not true value.</strong> Because it divides
+            the score by price, the cheaper of two similar horses always ranks higher — it does not compare price to
+            what a horse like this <em>should</em> cost. Use it to surface cheap horses worth a second look, not as a
+            statement that a horse is underpriced.</li>
+          <li><strong>Presets are a learning benchmark.</strong> Secretariat, Frankel and Winx score high because their
+            elite race records are entered for them. Seeing your prospect near an all-time great means your <em>inputs</em>
+            resemble theirs on the fields provided — it is a teaching reference, not a claim your horse is in their class.</li>
+        </ul>
+
+        <p class="disclaimer">This tool is a decision aid — a structured notebook for organizing your own judgement —
+          not a predictive model and not a substitute for a qualified bloodstock agent and veterinarian. Always
+          inspect and vet in person before bidding.</p>
       </article>
     </section>
 
@@ -704,7 +724,7 @@
 
         <h3>Key Features</h3>
         <ul class="about-features">
-          <li><strong>Real Horse Presets</strong> — Load verified public-record data for 22 famous horses (Secretariat,
+          <li><strong>Real Horse Presets</strong> — Load verified public-record data for 23 famous horses (Secretariat,
             Frankel, Winx, etc.) with one click</li>
           <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
           <li><strong>Value Score</strong> — Overall Score ÷ price, surfacing quality below market price</li>

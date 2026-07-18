@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.4.0'; // bump this each release to trigger update prompt
+const APP_VERSION='1.5.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -386,14 +386,17 @@ function computeFivePillars(h,mode) {
   const vetHardStop=h.vRepository===0||h.vXrays===0;
   const decision=decisionLabel(score,vetHardStop);
 
-  // Confidence reflects how much is direct observed data.
+  // "Data completeness" — how many of the 9 categories the user actually populated.
+  // NOTE: this is coverage of your OWN inputs, not statistical confidence in an outcome.
+  // (Renamed from "confidence" so it no longer implies predictive reliability, and the
+  // former 20% floor is removed so an empty record honestly reads as near-zero data.)
   const directSignals=[
     cat.pedigree,cat.conformation,cat.veterinary,cat.physical,
     cat.performance,cat.auction,cat.breeding,cat.temperament,cat.foalDate
   ].filter(v => v!=null).length;
-  const confidence=clamp(Math.round((directSignals/9)*100),20,100);
+  const confidence=Math.round((directSignals/9)*100);
 
-  return {score,decision,pillars,confidence};
+  return {score,decision,pillars,confidence,dataFilled:directSignals,dataTotal:9};
 }
 
 // ---------- Overall scoring ----------
@@ -434,15 +437,8 @@ const form=document.getElementById('horseForm');
 function readForm() {
   const fd=new FormData(form);
   const h={};
-  const rangeMinMarkers={
-    'cImpression': '1','cWalk': '1','cBalance': '1','cShoulder': '1','cHip': '1',
-    'cCannon': '1','cKnees': '1','cPasterns': '1','cHooves': '1','cNeck': '1','cTopline': '1',
-    'height': '1','weight': '1','girth': '1','cannonIn': '1'
-  };
   for(const [k,v] of fd.entries()) {
     if(v===''||v==null) continue;
-    // Skip range inputs that are at min=1 (marker for "untouched" fields)
-    if(rangeMinMarkers.hasOwnProperty(k)&&v===rangeMinMarkers[k]) continue;
     const numericFields=new Set([
       'sireFee','sireAEI','sireCI','damFoals','damWinners','damBlackType',
       'damsireAEI','blackType3','nick','dosageIndex','inbreeding',
@@ -465,6 +461,14 @@ function readForm() {
       h[k]=v;
     }
   }
+  // Range sliders (conformation impression, walk, detailed traits) only count once the
+  // user has actually moved them. A browser range input has no "empty" state — it sits at
+  // its default midpoint — so without this an untouched slider would leak a phantom score,
+  // AND a legitimate worst-case rating of 1 could never be distinguished from "not rated".
+  // We track a `data-touched` flag set on first input and drop any slider that lacks it.
+  form.querySelectorAll('input[type="range"]').forEach(r => {
+    if(!r.dataset.touched&&r.name) delete h[r.name];
+  });
   // Checkboxes: when unchecked they don't appear in FormData. Normalize to 0/undefined.
   ['flagWind','flagThroat','flagOCD','flagHeart','flagSoundness','flagBehavior']
     .forEach(k => {if(h[k]==null) h[k]=0;});
@@ -473,8 +477,10 @@ function readForm() {
 
 function fillForm(h) {
   form.reset();
-  // Reset range outputs (no value yet → dash).
+  // Reset range sliders: clear the "touched" flag and blank the output. An untouched
+  // slider is treated as "not rated" by readForm regardless of its default position.
   form.querySelectorAll('input[type="range"]').forEach(r => {
+    delete r.dataset.touched;
     if(r.nextElementSibling) r.nextElementSibling.textContent='—';
   });
   // Reset checkboxes.
@@ -488,22 +494,10 @@ function fillForm(h) {
       return;
     }
     el.value=h[k];
-    if(el.type==='range'&&el.nextElementSibling)
-      el.nextElementSibling.textContent=h[k];
-  });
-  // Reset any range inputs NOT in the preset to min=1 (marker for "untouched").
-  // This prevents form.reset() defaults from affecting the score when loading presets
-  // that don't have conformation data.
-  const rangeFields=['cImpression','cWalk','cBalance','cShoulder','cHip','cCannon','cKnees',
-    'cPasterns','cHooves','cNeck','cTopline','height','weight','girth','cannonIn'];
-  rangeFields.forEach(k => {
-    if(!h.hasOwnProperty(k)) {
-      const el=form.elements.namedItem(k);
-      if(el&&el.type==='range') {
-        const minVal=el.getAttribute('min')||'1';
-        el.value=minVal;
-        if(el.nextElementSibling) el.nextElementSibling.textContent='—';
-      }
+    if(el.type==='range') {
+      // Only sliders the preset actually provides count as rated.
+      el.dataset.touched='1';
+      if(el.nextElementSibling) el.nextElementSibling.textContent=h[k];
     }
   });
   updatePhotoPreview(h.photoUrl||'');
@@ -517,6 +511,7 @@ function updatePhotoPreview(url) {
   if(!img||!ph) return;
   const safe=url&&/^https?:\/\//i.test(url)? url:'';
   if(safe) {
+    img.referrerPolicy='no-referrer';
     img.src=safe;
     img.style.display='block';
     ph.style.display='none';
@@ -529,7 +524,11 @@ function updatePhotoPreview(url) {
 }
 
 form.addEventListener('input',e => {
-  if(e.target&&e.target.name==='photoUrl') updatePhotoPreview(e.target.value);
+  if(e.target) {
+    if(e.target.name==='photoUrl') updatePhotoPreview(e.target.value);
+    // Any user interaction with a slider marks it as an intentional rating (incl. a 1).
+    if(e.target.type==='range') e.target.dataset.touched='1';
+  }
   updateLiveScore();
 });
 form.addEventListener('change',updateLiveScore);
@@ -548,7 +547,7 @@ function updateLiveScore() {
     pillarDecisionEl.textContent=p.decision.text;
     pillarDecisionEl.className=`decision ${p.decision.cls}`;
   }
-  if(pillarConfidenceEl) pillarConfidenceEl.textContent=`${p.confidence}%`;
+  if(pillarConfidenceEl) pillarConfidenceEl.textContent=`${p.dataFilled}/9 categories`;
   renderBenchmarkTable(h);
 }
 
@@ -589,7 +588,7 @@ document.getElementById('btnReset').addEventListener('click',() => {
   form.reset();
   form.elements.id.value='';
   form.querySelectorAll('input[type="range"]').forEach(r => {
-    r.value='';
+    delete r.dataset.touched;
     if(r.nextElementSibling) r.nextElementSibling.textContent='—';
   });
   form.querySelectorAll('input[type="checkbox"]').forEach(cb => {cb.checked=false;});
@@ -691,7 +690,7 @@ function renderList() {
     }).join('');
     const safePhoto=h.photoUrl&&/^https?:\/\//i.test(h.photoUrl)? h.photoUrl:null;
     const photoHtml=safePhoto
-      ? `<img class="horse-card-photo" src="${escapeHtml(safePhoto)}" alt="${escapeHtml(h.name)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+      ? `<img class="horse-card-photo" src="${escapeHtml(safePhoto)}" alt="${escapeHtml(h.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
       +`<div class="horse-card-photo-placeholder" style="display:none">🐎</div>`
       :`<div class="horse-card-photo-placeholder">🐎</div>`;
     return `
@@ -707,7 +706,7 @@ function renderList() {
             ${h.venue? '· '+escapeHtml(h.venue):''}
           </div>
           <div class="ped"><em>By</em> ${escapeHtml(ped)}</div>
-          ${p.score==null? '':`<div class="meta">5-pillar: <strong>${p.score}</strong> · ${p.decision.text} · confidence ${p.confidence}%</div>`}
+          ${p.score==null? '':`<div class="meta">5-pillar: <strong>${p.score}</strong> · ${p.decision.text} · ${p.dataFilled}/9 data</div>`}
           ${h.aReserve? `<div class="price">${fmtUSD(h.aReserve)}${vs? ` · value ${vs}`:''}</div>`:''}
           <div class="breakdown">${breakdown}</div>
           <div class="actions">
@@ -790,7 +789,7 @@ function renderBenchmarkTable(currentHorse) {
       <td>${toRange10(p.pillars.pillarMind)?.toFixed(1)??'—'}</td>
       <td>${p.score==null? '—':p.score}</td>
       <td>${p.decision.text}</td>
-      <td>${p.confidence}%</td>
+      <td>${p.dataFilled}/9</td>
     </tr>`;
 
   out.innerHTML=`<table>
@@ -804,7 +803,7 @@ function renderBenchmarkTable(currentHorse) {
         <th>Mind</th>
         <th>Score</th>
         <th>Decision</th>
-        <th>Confidence</th>
+        <th>Data</th>
       </tr>
     </thead>
     <tbody>
@@ -1120,6 +1119,7 @@ if(benchmarkFilter) {
       // Clear form like Reset button does
       form.reset();
       form.querySelectorAll('input[type="range"]').forEach(r => {
+        delete r.dataset.touched;
         if(r.nextElementSibling) r.nextElementSibling.textContent='—';
       });
       form.querySelectorAll('input[type="checkbox"]').forEach(cb => {cb.checked=false;});

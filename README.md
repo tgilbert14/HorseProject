@@ -75,7 +75,7 @@ Northern Hemisphere thoroughbreds all share a universal January 1 birthday. Janu
 
 | Feature | Details |
 |---|---|
-| **Real Horse Presets** | Load verified public-record data for 22 famous horses (Secretariat, Frankel, American Pharoah, Winx, etc.) with one click |
+| **Real Horse Presets** | Load verified public-record data for 23 famous horses (Secretariat, Frankel, American Pharoah, Winx, etc.) with one click |
 | **Live Scoring** | Score updates in real time as you fill the form |
 | **Saved Horses** | All entries persist in browser localStorage — no account needed |
 | **Side-by-Side Compare** | Select 2–4 horses; best/worst values highlighted automatically |
@@ -137,6 +137,8 @@ All data is stored in your **browser's localStorage**. Nothing is sent to any se
 ## Disclaimer
 
 This tool is a structured decision aid, not a substitute for a qualified bloodstock agent and veterinarian. Always conduct an in-person inspection and independent veterinary review before bidding at auction.
+
+**On the score:** the number is a transparent roll-up of *the data you enter* — it organizes your judgement, it does not predict racing success. No model does that reliably at the yearling stage: in published research even the single strongest signal available (the sale price itself) correlates with later race ratings at only about *r*≈0.36. Read the on-paper score as a checklist and a discussion prompt for your agent and vet, never as a forecast. The **"Data filled"** gauge shows how many of the 9 categories you've populated — it is input-completeness, not statistical confidence.
 
 ---
 

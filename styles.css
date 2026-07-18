@@ -103,16 +103,6 @@ body {
   white-space: nowrap;
 }
 
-#btnSimpleMode {
-  border-color: var(--good);
-  color: var(--good);
-}
-
-body.simple-off #btnSimpleMode {
-  border-color: var(--warn);
-  color: var(--warn);
-}
-
 /* ===== Tabs ===== */
 .tabs {
   display: flex;
@@ -269,23 +259,6 @@ main {
 
 .decision-wait {
   color: var(--muted);
-}
-
-.score-mode-row {
-  margin-top: 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.score-mode-row label {
-  color: var(--muted);
-  font-size: 13px;
-}
-
-.score-mode-row select {
-  min-width: 320px;
 }
 
 .pillar-guide {
@@ -1119,16 +1092,6 @@ body.light .theme-btn:hover {
   min-width: 260px;
 }
 
-#btnAuctionFast {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-#btnAuctionFast:hover {
-  background: var(--primary);
-  color: #ffffff;
-}
-
 .preset-note {
   margin: 10px 0 0;
   padding: 8px 12px;
@@ -1227,11 +1190,6 @@ button.info:hover {
   .mode-toggle select {
     flex: 1 1 220px;
     min-width: 0;
-  }
-
-  .score-mode-row select {
-    min-width: 0;
-    width: 100%;
   }
 
   .toolbar {
