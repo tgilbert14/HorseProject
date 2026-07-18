@@ -1547,3 +1547,158 @@ button.info:hover {
   .li-tag { justify-self: start; }
   .read-meta { margin-left: 0; width: 100%; }
 }
+
+/* ======================================================================
+   PHASE 2 — Price sanity check (real median-by-sale benchmarks)
+   ====================================================================== */
+.price-sanity-wrap {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-2);
+}
+.ps-title {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--accent);
+}
+.ps-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.ps-bench {
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.6;
+  margin-bottom: 14px;
+}
+
+/* price gauge (log scale) */
+.ps-gauge {
+  position: relative;
+  height: 30px;
+  margin: 26px 0 4px;
+}
+.ps-track {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  height: 8px;
+  border-radius: 5px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--good) 40%, transparent),
+    color-mix(in srgb, var(--warn) 40%, transparent),
+    color-mix(in srgb, var(--bad) 45%, transparent));
+}
+.ps-typical {
+  position: absolute;
+  top: 9px;
+  height: 14px;
+  background: color-mix(in srgb, var(--good) 22%, transparent);
+  border-left: 1px dashed var(--good);
+  border-right: 1px dashed var(--good);
+  border-radius: 3px;
+}
+.ps-median {
+  position: absolute;
+  top: 6px;
+  width: 2px;
+  height: 20px;
+  background: var(--text);
+  transform: translateX(-1px);
+}
+.ps-marker {
+  position: absolute;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 3px solid var(--panel);
+  transform: translate(-7px, 8px);
+  box-shadow: 0 0 0 1px var(--border-strong);
+  z-index: 2;
+}
+.ps-marker span {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--text);
+  background: var(--panel);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.ps-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10.5px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.ps-scale span:nth-child(2) { color: var(--text); font-weight: 600; }
+
+.ps-verdict {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 4px solid var(--muted);
+  background: var(--panel);
+}
+.ps-band {
+  display: block;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-size: 12px;
+  margin-bottom: 3px;
+}
+.ps-caveat {
+  margin: 10px 0 0;
+  font-size: 11.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* band colours (semantic, shared by gauge marker, verdict, and list chip) */
+.pb-mid    { border-left-color: var(--good); }
+.pb-mid    .ps-band, .ps-verdict.pb-mid .ps-band { color: var(--good); }
+.pb-lowmid { border-left-color: var(--primary); }
+.pb-lowmid .ps-band { color: var(--primary); }
+.pb-low    { border-left-color: var(--warn); }
+.pb-low    .ps-band { color: var(--warn); }
+.pb-highmid{ border-left-color: var(--warn); }
+.pb-highmid .ps-band { color: var(--warn); }
+.pb-high   { border-left-color: var(--bad); }
+.pb-high   .ps-band { color: var(--bad); }
+
+.ps-marker.pb-mid    { background: var(--good); }
+.ps-marker.pb-lowmid { background: var(--primary); }
+.ps-marker.pb-low    { background: var(--warn); }
+.ps-marker.pb-highmid{ background: var(--warn); }
+.ps-marker.pb-high   { background: var(--bad); }
+
+/* list-card price band chip */
+.ps-chip {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 100px;
+  vertical-align: middle;
+  border: 1px solid currentColor;
+}
+.ps-chip.pb-mid    { color: var(--good); }
+.ps-chip.pb-lowmid { color: var(--primary); }
+.ps-chip.pb-low    { color: var(--warn); }
+.ps-chip.pb-highmid{ color: var(--warn); }
+.ps-chip.pb-high   { color: var(--bad); }

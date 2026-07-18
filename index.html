@@ -291,6 +291,16 @@
               </select>
             </label>
             <label>Estimated vet/transport cost (USD) <input type="number" name="aVetCost" min="0" step="100" /></label>
+            <label class="full">Sale — for the price sanity check <button type="button" class="info"
+                data-info="Pick the sale (and book/session) this horse is in. We compare your price to that sale's real published median so you can see if it's normal, cheap, or a premium.">ⓘ</button>
+              <select name="saleBenchmark">
+                <option value="">— pick a sale to check the price —</option>
+              </select>
+            </label>
+          </div>
+          <div class="price-sanity-wrap">
+            <h3 class="ps-title">💵 Price sanity check <span class="hint">is this price normal for this sale?</span></h3>
+            <div id="priceSanity"></div>
           </div>
         </div>
 
@@ -579,10 +589,15 @@
 
         <h3>Auction / Value</h3>
         <ul>
-          <li>The "Value Score" on the list view = Overall Score ÷ price (in $10k units) — a rough quality-per-dollar
-            ratio. It surfaces cheaper horses whose score outpaces their reserve, but note it structurally favors the
-            lowest-priced horse and is <em>not</em> anchored to comparable sale prices (see "How to read the score
-            honestly" below).</li>
+          <li><strong>Price sanity check (recommended).</strong> In the Auction &amp; Price card, pick the sale (and
+            book) your horse is in. The app compares your reserve to that sale's <em>real published median</em> and
+            tells you whether the price is below, within, or above the normal range for that sale — grounded in actual
+            market data, not a formula. It answers "is this price normal <em>for this sale</em>?", not "is it right for
+            <em>this horse</em>" (a standout is worth well above the median; a plain one, well below).</li>
+          <li>The older "Value Score" on the list view = Overall Score ÷ price (in $10k units) — a rough
+            quality-per-dollar ratio. It surfaces cheaper horses whose score outpaces their reserve, but note it
+            structurally favors the lowest-priced horse and is <em>not</em> anchored to comparable sale prices. Prefer
+            the price sanity check above.</li>
         </ul>
 
         <h3>Breeding</h3>
@@ -885,12 +900,17 @@
           <dt>Value Score (this app)</dt>
           <dd>Overall score ÷ price — a rough quality-per-dollar ratio. Handy for surfacing cheaper horses, but it
             structurally favours the lowest price, so sanity-check it against real sale prices.</dd>
+          <dt>Price sanity check (this app)</dt>
+          <dd>Compares your reserve to the <em>real published median</em> for the sale you pick, and tells you whether
+            the price is below, within, or above the normal range for that sale. Grounded in actual market data — it's
+            about the sale, not a verdict on the individual horse.</dd>
         </dl>
       </div>
     </div>
   </div>
 
   <script src="presets.js"></script>
+  <script src="sales-data.js"></script>
   <script src="app.js"></script>
   <script>
     if('serviceWorker' in navigator) {

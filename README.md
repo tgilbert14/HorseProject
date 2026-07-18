@@ -75,6 +75,7 @@ Northern Hemisphere thoroughbreds all share a universal January 1 birthday. Janu
 
 | Feature | Details |
 |---|---|
+| **Price sanity check** | Pick the sale (and book) your horse is in, and the app compares your reserve to that sale's **real published median** — telling you whether the price is below, within, or above the normal range for that sale. Grounded in actual market data, not a formula. |
 | **Guided read** | The 5 pillars render as a live teaching checklist — *what to look at, why it matters, your current read,* and *which fields you still need* to assess each pillar. The single score is deliberately secondary. |
 | **Learn from the legends** | Pick a legendary horse (Frankel, Secretariat, Winx…) and see a plain-language breakdown of *why* their page is elite — a benchmark to learn from, not a bar your prospect must clear. |
 | **Plain-language glossary** | A built-in jargon buster (AEI, black-type, nick, repository, scope grade, pinhook…) written for first-time buyers. |

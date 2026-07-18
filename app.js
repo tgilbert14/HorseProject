@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.6.0'; // bump this each release to trigger update prompt
+const APP_VERSION='1.7.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -550,6 +550,7 @@ function updateLiveScore() {
   }
   if(pillarConfidenceEl) pillarConfidenceEl.textContent=`${p.dataFilled}/9 categories`;
   renderPillarChecklist(h);
+  renderPriceSanity(h);
 }
 
 form.addEventListener('submit',e => {
@@ -732,6 +733,7 @@ function renderList() {
 
   list.innerHTML=items.map(({h,s,vs}) => {
     const p=computeFivePillars(h,mode,currentScoreMode());
+    const ps=priceSanity(h);
     const color=s.overall>=75? 'var(--good)':
       s.overall>=55? 'var(--warn)':'var(--bad)';
     const ped=[h.sire,h.dam,h.damsire].filter(Boolean).join(' × ')||'—';
@@ -760,7 +762,7 @@ function renderList() {
           </div>
           <div class="ped"><em>By</em> ${escapeHtml(ped)}</div>
           ${p.score==null? '':`<div class="meta">5-pillar: <strong>${p.score}</strong> · ${p.decision.text} · ${p.dataFilled}/9 data</div>`}
-          ${h.aReserve? `<div class="price">${fmtUSD(h.aReserve)}${vs? ` · value ${vs}`:''}</div>`:''}
+          ${h.aReserve? `<div class="price">${fmtUSD(h.aReserve)}${vs? ` · value ${vs}`:''}${ps.band? ` <span class="ps-chip ${ps.band.cls}">${ps.band.label}</span>`:''}</div>`:''}
           <div class="breakdown">${breakdown}</div>
           <div class="actions">
             <button class="btn" onclick="editHorse('${h.id}')">✏ Edit</button>
@@ -932,6 +934,83 @@ function renderLegendsPanel() {
           and that’s completely normal.</p>
       </div>
     </div>`;
+}
+
+// ---------- Price sanity check (real published median-by-sale data) ----------
+// Answers "is this price normal FOR THIS SALE?" — the one genuinely defensible,
+// data-grounded feature. It is NOT a per-horse appraisal.
+function getBenchmark(id) {
+  if(!id||typeof SALE_BENCHMARKS==='undefined') return null;
+  return SALE_BENCHMARKS.sales.find(s => s.id===id)||null;
+}
+
+// Band a price against a sale's median. Multipliers approximate the (right-skewed,
+// roughly log-normal) spread of auction prices around the median for that sale.
+function priceBand(price,median) {
+  if(price==null||price<=0||median==null||median<=0) return null;
+  const r=price/median;
+  if(r<0.4) return {key: 'well-below',label: 'Well below typical',cls: 'pb-low',
+    note: 'Much cheaper than most at this sale — could be a genuine bargain, or a sign the market sees a problem. Find out which.'};
+  if(r<0.8) return {key: 'below',label: 'Below typical',cls: 'pb-lowmid',
+    note: 'At the value end for this sale — worth a closer look if the horse is sound.'};
+  if(r<=2.0) return {key: 'within',label: 'In the typical range',cls: 'pb-mid',
+    note: 'A normal price for this sale — the price itself raises no flags either way.'};
+  if(r<=4.0) return {key: 'above',label: 'Above typical',cls: 'pb-highmid',
+    note: 'You would be paying up. Make sure the individual and the page justify a premium.'};
+  return {key: 'well-above',label: 'Well above typical',cls: 'pb-high',
+    note: 'A premium price for this sale — reserved for the standouts. Be sure this is one.'};
+}
+
+function priceSanity(h) {
+  const bench=getBenchmark(h&&h.saleBenchmark);
+  const price=h? (h.aReserve!=null? h.aReserve:(h.aMarketEst!=null? h.aMarketEst:null)):null;
+  if(!bench) return {bench: null,price,band: null};
+  return {bench,price,band: priceBand(price,bench.medianUSD)};
+}
+
+const fmtMoney=n => n==null? '—':'$'+Math.round(n).toLocaleString('en-US');
+
+function renderPriceSanity(currentHorse) {
+  const el=document.getElementById('priceSanity');
+  if(!el) return;
+  const h=currentHorse||{};
+  const {bench,price,band}=priceSanity(h);
+  if(!bench) {
+    el.innerHTML='<p class="ps-hint">Pick the sale (and book) above and enter a reserve or market estimate to check whether the price is in the normal range for that sale.</p>';
+    return;
+  }
+  const nativeLabel=(bench.currency!=='USD'&&bench.medianNative!=null)
+    ? ` (${bench.currency==='guineas'? bench.medianNative.toLocaleString()+' gns':bench.currency+' '+bench.medianNative.toLocaleString()})`
+    :'';
+  const line=`<div class="ps-bench">
+      <strong>${escapeHtml(bench.sale)}${bench.book&&bench.book!=='All books'? ' · '+escapeHtml(bench.book):''}</strong>
+      <span class="hint">${escapeHtml(bench.year)} · ${escapeHtml(bench.type)}</span><br>
+      Median <strong>${fmtMoney(bench.medianUSD)}</strong>${nativeLabel} · Average ${fmtMoney(bench.avgUSD)}
+    </div>`;
+
+  const lo=bench.medianUSD/8,hi=bench.medianUSD*8;
+  const posOf=v => {
+    const p=(Math.log10(v)-Math.log10(lo))/(Math.log10(hi)-Math.log10(lo))*100;
+    return Math.max(0,Math.min(100,p));
+  };
+  let gauge='';
+  if(price!=null&&price>0) {
+    const bandLo=posOf(bench.medianUSD*0.4),bandHi=posOf(bench.medianUSD*2.0);
+    const mk=posOf(price);
+    gauge=`<div class="ps-gauge">
+      <div class="ps-track"></div>
+      <div class="ps-typical" style="left:${bandLo}%;width:${bandHi-bandLo}%"></div>
+      <div class="ps-median" style="left:${posOf(bench.medianUSD)}%" title="median"></div>
+      <div class="ps-marker ${band? band.cls:''}" style="left:${mk}%"><span>${fmtMoney(price)}</span></div>
+    </div>
+    <div class="ps-scale"><span>${fmtMoney(lo)}</span><span>median ${fmtMoney(bench.medianUSD)}</span><span>${fmtMoney(hi)}</span></div>`;
+  }
+  const verdict=(price!=null&&price>0&&band)
+    ? `<div class="ps-verdict ${band.cls}"><span class="ps-band">${band.label}</span> ${escapeHtml(band.note)}</div>`
+    :'<p class="ps-hint">Enter a reserve or market estimate above to see where this price sits on the scale.</p>';
+  el.innerHTML=line+gauge+verdict+
+    `<p class="ps-caveat">This asks only “is the price normal <em>for this sale</em>?” — not whether it’s right for <em>this horse</em>.
+      A standout individual is worth well above the median; a plain one, well below. Sale figures: ${escapeHtml(bench.source)}.</p>`;
 }
 
 // ---------- Compare view ----------
@@ -1232,8 +1311,21 @@ document.getElementById('countSaved').textContent=loadHorses().length;
   renderLegendsPanel();
 })();
 
-// Initial guided-read checklist (empty state).
+// Populate the "Price sanity check" sale selector from the benchmark dataset.
+(function initSaleBenchmarks() {
+  const sel=form&&form.elements.namedItem('saleBenchmark');
+  if(!sel||typeof SALE_BENCHMARKS==='undefined') return;
+  SALE_BENCHMARKS.sales.forEach(s => {
+    const opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=`${s.sale}${s.book&&s.book!=='All books'? ' — '+s.book:''} (${s.year})`;
+    sel.appendChild(opt);
+  });
+})();
+
+// Initial guided-read checklist + price panel (empty state).
 renderPillarChecklist({});
+renderPriceSanity({});
 
 // ---------- Preset loader ----------
 (function initPresets() {
