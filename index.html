@@ -4,32 +4,46 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Horse Selector — Auction & Breeding</title>
+  <meta name="description"
+    content="A private bloodstock decision workspace for disciplined auction buying and breeding evaluation." />
+  <meta name="theme-color" content="#10241c" />
+  <title>Horse Selector — Bloodstock Decision Workspace</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="design.css" />
 </head>
 
 <body>
 
   <header class="topbar">
     <div class="brand">
-      <span class="logo">🐎</span>
-      <div>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 48 48" role="img">
+          <path d="M14 37c3-8 4-15 2-22 5 1 9 0 13-5 1 4 4 7 8 9-1 7-5 12-11 15-2 1-4 3-5 6" />
+          <path d="M17 20c4 3 9 4 15 1M28 11l-2-5M34 16l4-4M13 38h20" />
+          <circle cx="29" cy="17" r="1" />
+        </svg>
+      </span>
+      <div class="brand-copy">
+        <span class="brand-kicker">Auction &amp; breeding evaluation</span>
         <h1>Horse Selector</h1>
-        <p class="tag">Auction buying &amp; breeding evaluation</p>
+        <p class="tag">Private, browser-based decision tool</p>
       </div>
     </div>
     <div class="mode-toggle">
-      <label>Mode: <button type="button" class="info" id="btnModeInfo"
-          style="margin-left: 4px; font-size: 14px; padding: 2px 6px;"
-          data-info="Auction Buy: weights performance + value. Breeding Mare: weights her proven foals. Breeding Stallion: weights his progeny earnings.">ⓘ</button></label>
-      <select id="mode">
-        <option value="auction">Auction Buy</option>
-        <option value="breeding-mare">Breeding — Mare</option>
-        <option value="breeding-stallion">Breeding — Stallion</option>
-      </select>
-      <button id="btnWeights" class="btn ghost">⚖ Weights</button>
-      <button id="btnAbout" class="btn ghost about-btn">? Help</button>
-      <button id="btnTheme" class="btn ghost theme-btn">☀ Light</button>
+      <div class="mode-field">
+        <label for="mode">Evaluation mode <button type="button" class="info" id="btnModeInfo"
+            data-info="Auction Buy weights performance and value. Breeding Mare weights proven foals. Breeding Stallion weights progeny earnings.">i</button></label>
+        <select id="mode">
+          <option value="auction">Auction purchase</option>
+          <option value="breeding-mare">Breeding · Mare</option>
+          <option value="breeding-stallion">Breeding · Stallion</option>
+        </select>
+      </div>
+      <div class="utility-actions">
+        <button id="btnWeights" class="btn ghost"><span aria-hidden="true">◎</span> Weights</button>
+        <button id="btnAbout" class="btn ghost about-btn"><span aria-hidden="true">?</span> Guide</button>
+        <button id="btnTheme" class="btn ghost theme-btn">Light theme</button>
+      </div>
     </div>
   </header>
 
@@ -41,11 +55,12 @@
   </div>
 
   <nav class="tabs">
-    <button class="tab active" data-view="form">Add / Edit Horse</button>
-    <button class="tab" data-view="list">Saved Horses (<span id="countSaved">0</span>)</button>
-    <button class="tab" data-view="compare">Compare</button>
-    <button class="tab" data-view="data">Import / Export</button>
-    <button class="tab" data-view="guide">Selection Guide</button>
+    <button class="tab active" data-view="form"><span class="tab-index">01</span> Evaluate</button>
+    <button class="tab" data-view="list"><span class="tab-index">02</span> Saved <span class="tab-count"
+        id="countSaved">0</span></button>
+    <button class="tab" data-view="compare"><span class="tab-index">03</span> Compare</button>
+    <button class="tab" data-view="data"><span class="tab-index">04</span> Data</button>
+    <button class="tab" data-view="guide"><span class="tab-index">05</span> Guide</button>
   </nav>
 
   <main>
@@ -53,25 +68,49 @@
     <!-- ============== FORM VIEW ============== -->
     <section id="view-form" class="view active">
 
+      <section class="editorial-masthead" aria-labelledby="workspaceTitle">
+        <div class="masthead-copy">
+          <span class="eyebrow">Horse evaluation workspace</span>
+          <h2 id="workspaceTitle">Evaluate a horse before<br /><em>you bid or breed.</em></h2>
+          <p>Record pedigree, inspection, performance, and sale data in one place. The score summarizes your inputs;
+            it does not predict racing success.</p>
+          <div class="masthead-actions">
+            <a class="btn primary" href="#assessment">Start an evaluation <span aria-hidden="true">→</span></a>
+            <button type="button" class="btn glass glossary-btn" id="btnGlossary">View glossary</button>
+          </div>
+        </div>
+        <div class="masthead-proof" aria-label="Evaluation details">
+          <div><strong>5</strong><span>assessment areas</span></div>
+          <div><strong>9</strong><span>scoring categories</span></div>
+          <div><strong>Local</strong><span>saved on this device</span></div>
+        </div>
+      </section>
+
       <div id="welcomeCard" class="card welcome-card hidden">
         <button class="welcome-close" id="btnCloseWelcome" aria-label="Dismiss welcome">✕</button>
-        <h2>👋 New here? Start with these three</h2>
+        <span class="eyebrow">New to Horse Selector?</span>
+        <h2>A simple way to start</h2>
         <ol class="welcome-steps">
-          <li><strong>See what great looks like.</strong> Load a legend below (try Frankel) and read the
-            <em>Learn from the legends</em> card.</li>
-          <li><strong>Try your own horse.</strong> Click <em>Enter your own horse</em> — the <em>guided read</em>
-            shows what to look at, why it matters, and what you still need.</li>
-          <li><strong>Get a second opinion.</strong> Save it, then hit <em>Report</em> to print or send a
-            due-diligence sheet to your agent &amp; vet.</li>
+          <li><strong>Load an example.</strong> Choose a public-record horse below to see how completed fields affect
+            the summary.</li>
+          <li><strong>Enter your own horse.</strong> The evaluation summary shows the data entered and what is still
+            missing.</li>
+          <li><strong>Save a report.</strong> Print or share the recorded information with your agent and veterinarian.</li>
         </ol>
-        <p class="welcome-note">A notebook that organises your judgement and teaches the basics — not a crystal
-          ball. Always inspect and vet in person before bidding.</p>
+        <p class="welcome-note">This tool organizes the information you enter. It does not predict racing performance
+          or replace an in-person inspection and independent veterinary review.</p>
       </div>
 
-      <div class="card preset-card">
-        <h2>Quick Load — Real Horse Presets <span class="hint">verified public-record data</span></h2>
+      <div class="card preset-card" id="assessment">
+        <div class="card-title-row">
+          <div>
+            <span class="eyebrow">Start with an example</span>
+            <h2>Load an example or enter your own horse</h2>
+          </div>
+          <span class="source-badge">Verified public records</span>
+        </div>
         <div class="preset-row">
-          <select id="presetSelect">
+          <select id="presetSelect" aria-label="Famous horse preset">
             <option value="">— Choose a famous horse to auto-fill —</option>
           </select>
           <button type="button" class="btn primary" id="btnQuickSave">Save horse</button>
@@ -82,27 +121,39 @@
           actually inspected the horse. Anything left blank is treated as <em>unknown</em>, not "clean".
         </p>
         <div class="preset-actions">
-          <span><strong>OR</strong> <button type="button" class="btn ghost" id="btnEnterOwnHorse">Enter your own horse
-              to evaluate</button></span>
-          <button type="button" class="btn ghost glossary-btn" id="btnGlossary">📖 New to this? Glossary of
-            terms</button>
+          <span class="or-divider">or</span>
+          <button type="button" class="btn ghost" id="btnEnterOwnHorse">Enter your own horse <span
+              aria-hidden="true">→</span></button>
         </div>
       </div>
 
       <!-- Unsaved-draft restore banner -->
       <div id="draftBanner" class="draft-banner hidden">
-        <span>💾 You have an unsaved horse from last time<span id="draftBannerName" class="draft-name"></span>.</span>
+        <span>You have an unsaved horse from last time<span id="draftBannerName" class="draft-name"></span>.</span>
         <button type="button" class="btn primary" id="btnRestoreDraft">Restore it</button>
         <button type="button" class="btn ghost" id="btnDiscardDraft">Discard</button>
       </div>
 
       <form id="horseForm" autocomplete="off">
 
+        <nav class="form-jump-nav" aria-label="Assessment sections">
+          <span>Sections</span>
+          <a href="#identity">Profile</a>
+          <a href="#pedigree">Pedigree</a>
+          <a href="#performance">Performance</a>
+          <a href="#auction">Market</a>
+          <a href="#inspection">Inspection</a>
+          <a href="#notes">Notes</a>
+        </nav>
+
         <!-- HERO: guided read (a teaching checklist, not a verdict) -->
-        <div class="card hero-card">
+        <div class="card hero-card assessment-dashboard">
           <div class="hero-head">
-            <h2 style="margin: 0;">Your guided read <span class="hint">live — a checklist, not a verdict</span></h2>
-            <button type="button" class="btn" id="btnSaveFromHero">💾 Save horse</button>
+            <div>
+              <span class="eyebrow">Live summary</span>
+              <h2>Evaluation summary</h2>
+            </div>
+            <button type="button" class="btn" id="btnSaveFromHero">Save horse</button>
           </div>
 
           <div class="read-strip">
@@ -119,10 +170,9 @@
             </div>
           </div>
           <p class="hint hero-hint">
-            This is a structured roll-up of <em>the data you entered</em> — not a prediction of racing success.
-            Even the strongest signals at the yearling stage explain only a small share of how a horse turns out.
-            Use the checklist below to see <em>what to look at, why, and where you still need to dig</em>. Never bid
-            without in-person inspection and an independent vet review.
+            This summary reflects <em>the data you entered</em>; it is not a prediction of racing success.
+            Use the checklist below to review the available information and identify missing fields. Always inspect
+            the horse in person and obtain an independent veterinary review before bidding.
           </p>
 
           <div id="pillarChecklist" class="pillar-checklist"></div>
@@ -170,22 +220,21 @@
         </div>
 
         <!-- LEARN FROM THE LEGENDS (education, not a leaderboard) -->
-        <div class="card legends-card">
+        <div class="card legends-card form-card" data-step="Reference">
           <div class="legends-head">
-            <h2 style="margin:0;">Learn from the legends <span class="hint">what an elite page looks like — and
-                why</span></h2>
+            <h2 style="margin:0;">Example records <span class="hint">see how public-record data affects the summary</span></h2>
             <select id="legendSelect" aria-label="Choose a legendary horse to learn from"></select>
           </div>
           <div id="legendPanel"></div>
         </div>
 
         <!-- IDENTITY -->
-        <div class="card">
+        <div class="card form-card" id="identity" data-step="01">
           <h2>Identity</h2>
           <div class="identity-row">
             <div class="photo-preview-wrap">
               <img id="photoPreview" class="photo-preview" alt="" referrerpolicy="no-referrer" />
-              <div id="photoPlaceholder" class="photo-preview-placeholder">🐎</div>
+              <div id="photoPlaceholder" class="photo-preview-placeholder"><span class="ph-monogram">HS</span></div>
             </div>
             <div class="identity-fields grid">
               <label class="full">Photo URL <input name="photoUrl" type="url"
@@ -213,9 +262,9 @@
         </div>
 
         <!-- PEDIGREE -->
-        <div class="card">
+        <div class="card form-card" id="pedigree" data-step="02">
           <h2>Pedigree <span class="hint">most predictive single factor</span></h2>
-          <p class="provider-tip">📥 <strong>Record what your data provider tells you.</strong> Paste the sire AEI from
+          <p class="provider-tip"><strong>Record what your data provider tells you.</strong> Paste the sire AEI from
             an <em>equineline</em> report and the nick rating from your <em>TrueNicks</em> / <em>eNicks</em> report —
             those are calibrated against real results. This app organises those numbers, it doesn't replace them.</p>
           <div class="grid">
@@ -263,9 +312,9 @@
         </div>
 
         <!-- PERFORMANCE -->
-        <div class="card">
+        <div class="card form-card" id="performance" data-step="03">
           <h2>Performance <span class="hint">leave blank for unraced yearlings</span></h2>
-          <p class="provider-tip">📥 Copy the record and speed figures straight from <em>Brisnet</em>, <em>Equibase</em>
+          <p class="provider-tip">Copy the record and speed figures straight from <em>Brisnet</em>, <em>Equibase</em>
             or <em>Racing Post</em> — the Beyer/Timeform figure is empirically derived, so record it, don't re-guess it.</p>
           <div class="grid">
             <label>Starts <input type="number" name="pStarts" min="0" /></label>
@@ -296,7 +345,7 @@
         </div>
 
         <!-- AUCTION & PRICE -->
-        <div class="card">
+        <div class="card form-card" id="auction" data-step="04">
           <h2>Auction &amp; Price</h2>
           <div class="grid">
             <label>Asking / Reserve (USD) <input type="number" name="aReserve" min="0" step="500" /></label>
@@ -319,13 +368,13 @@
             </label>
           </div>
           <div class="price-sanity-wrap">
-            <h3 class="ps-title">💵 Price sanity check <span class="hint">is this price normal for this sale?</span></h3>
+            <h3 class="ps-title">Price sanity check <span class="hint">is this price normal for this sale?</span></h3>
             <div id="priceSanity"></div>
           </div>
         </div>
 
         <!-- INSPECTION (replaces 10 conformation sliders + 5 vet selects) -->
-        <div class="card">
+        <div class="card form-card" id="inspection" data-step="05">
           <h2>Inspection <span class="hint">only fill these once you've actually seen the horse</span></h2>
           <div class="grid">
             <label>Overall conformation impression (1–10) <button type="button" class="info"
@@ -451,7 +500,7 @@
         </div>
 
         <!-- BREEDING — only visible in matching mode -->
-        <div class="card mare-only">
+        <div class="card form-card mare-only" data-step="06">
           <h2>Breeding — Mare</h2>
           <div class="grid">
             <label>Mare age <input type="number" name="bMareAge" min="0" /></label>
@@ -469,7 +518,7 @@
           </div>
         </div>
 
-        <div class="card stallion-only">
+        <div class="card form-card stallion-only" data-step="06">
           <h2>Breeding — Stallion</h2>
           <div class="grid">
             <label>Stud fee (USD) <input type="number" name="bStudFee" min="0" step="500" /></label>
@@ -498,7 +547,7 @@
         </div>
 
         <!-- NOTES -->
-        <div class="card">
+        <div class="card form-card" id="notes" data-step="06">
           <h2>Notes</h2>
           <label class="full">
             <textarea name="notes" rows="3"
@@ -507,7 +556,7 @@
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn primary">💾 Save Horse</button>
+          <button type="submit" class="btn primary">Save horse to stable</button>
           <button type="button" id="btnReset" class="btn ghost">Reset Form</button>
           <span class="live-score">Overall Score: <strong id="liveScore">—</strong> / 100</span>
         </div>
@@ -517,6 +566,14 @@
 
     <!-- ============== LIST VIEW ============== -->
     <section id="view-list" class="view">
+      <header class="view-header">
+        <div>
+          <span class="eyebrow">Saved records</span>
+          <h2>Saved horses</h2>
+          <p>Search, filter, and update the horses you have evaluated.</p>
+        </div>
+        <span class="view-number">02</span>
+      </header>
       <div id="listOverview" class="list-overview"></div>
       <div class="toolbar">
         <input id="search" placeholder="Search by name, sire, dam, hip..." />
@@ -534,14 +591,21 @@
           <option value="passed">Passed</option>
           <option value="bought">Bought</option>
         </select>
-        <button class="btn" id="btnShortlist" title="A compact printable / exportable shortlist">🖨 Shortlist</button>
+        <button class="btn" id="btnShortlist" title="A compact printable / exportable shortlist">Sale-day sheet</button>
       </div>
       <div id="horseList" class="horse-list"></div>
     </section>
 
     <!-- ============== COMPARE VIEW ============== -->
     <section id="view-compare" class="view">
-      <p class="hint">Select 2–4 horses to compare their pillar shape and every field side-by-side.</p>
+      <header class="view-header">
+        <div>
+          <span class="eyebrow">Comparison</span>
+          <h2>Compare horses</h2>
+          <p>Select 2–4 horses to compare their five assessment areas and recorded fields.</p>
+        </div>
+        <span class="view-number">03</span>
+      </header>
       <div id="compareSelect" class="compare-select"></div>
       <div id="compareRadar"></div>
       <div id="compareTable"></div>
@@ -549,22 +613,31 @@
 
     <!-- ============== DATA VIEW ============== -->
     <section id="view-data" class="view">
-      <div class="card">
+      <header class="view-header">
+        <div>
+          <span class="eyebrow">Backup and transfer</span>
+          <h2>Import and export</h2>
+          <p>Back up or transfer your saved records. Horse data is not sent to a server.</p>
+        </div>
+        <span class="view-number">04</span>
+      </header>
+      <div class="data-grid">
+      <div class="card data-card data-card-featured">
         <h2>Export &amp; backup</h2>
-        <p class="data-safety">⚠️ <strong>Your horses live only in this browser</strong> (nothing is sent to a server).
+        <p class="data-safety"><strong>Your horses live only in this browser</strong> (nothing is sent to a server).
           Clearing browser data, switching devices, or a lost phone will erase them. Export a JSON backup regularly —
           it's the only copy you control.</p>
         <p>Download all saved horses as CSV (spreadsheet-ready) or JSON (full backup).</p>
-        <button class="btn primary" id="btnExportJSON">⬇ Export JSON backup</button>
-        <button class="btn" id="btnExportCSV">⬇ Export CSV</button>
+        <button class="btn primary" id="btnExportJSON">Export JSON backup</button>
+        <button class="btn" id="btnExportCSV">Export CSV</button>
         <div id="backupStatus" class="backup-status"></div>
       </div>
-      <div class="card">
+      <div class="card data-card">
         <h2>Import</h2>
         <p>Load a previously exported JSON backup. <strong>Replaces current data.</strong></p>
         <input type="file" id="importFile" accept=".json" />
       </div>
-      <div class="card">
+      <div class="card data-card">
         <h2>Bulk add from a catalogue</h2>
         <details class="advanced-block">
           <summary>Paste a list of horses to add them all at once</summary>
@@ -577,16 +650,25 @@
               horses</button></div>
         </details>
       </div>
-      <div class="card danger">
+      <div class="card danger data-card">
         <h2>Danger Zone</h2>
-        <button class="btn danger" id="btnClear">🗑 Clear All Data</button>
+        <button class="btn danger" id="btnClear">Clear all data</button>
+      </div>
       </div>
     </section>
 
     <!-- ============== GUIDE VIEW ============== -->
     <section id="view-guide" class="view">
+      <header class="view-header">
+        <div>
+          <span class="eyebrow">Help and definitions</span>
+          <h2>Selection guide</h2>
+          <p>Definitions and context for the fields used in the evaluation.</p>
+        </div>
+        <span class="view-number">05</span>
+      </header>
       <article class="card guide">
-        <h2>Selection Guide — What the factors mean</h2>
+        <h2>Reading the page</h2>
 
         <h3>Pedigree (≈ 30% of score)</h3>
         <ul>
@@ -668,7 +750,7 @@
             completeness gauge for your own inputs, <em>not</em> a probability that the horse will run well.</li>
         </ul>
 
-        <h3>How to read the score honestly</h3>
+        <h3>How to interpret the score</h3>
         <ul>
           <li><strong>No score predicts a racehorse.</strong> In published work, even the single best signal available at
             the yearling stage — the sale price itself, which already bakes in every agent's and vet's opinion —
@@ -679,9 +761,9 @@
             the score by price, the cheaper of two similar horses always ranks higher — it does not compare price to
             what a horse like this <em>should</em> cost. Use it to surface cheap horses worth a second look, not as a
             statement that a horse is underpriced.</li>
-          <li><strong>Presets are a learning benchmark.</strong> Secretariat, Frankel and Winx score high because their
-            elite race records are entered for them. Seeing your prospect near an all-time great means your <em>inputs</em>
-            resemble theirs on the fields provided — it is a teaching reference, not a claim your horse is in their class.</li>
+          <li><strong>Example scores reflect completed fields.</strong> Secretariat, Frankel and Winx score highly
+            because their race records are included. A similar score only means that the entered fields produced a
+            similar result; it does not place a prospect in the same class.</li>
         </ul>
 
         <p class="disclaimer">This tool is a decision aid — a structured notebook for organizing your own judgement —
@@ -691,6 +773,12 @@
     </section>
 
   </main>
+
+  <footer class="site-footer">
+    <div class="footer-mark" aria-hidden="true">HS</div>
+    <p><strong>Horse Selector</strong><span>Auction buying and breeding evaluation.</span></p>
+    <p class="footer-note">Private by design · Saved on this device · Always inspect and vet in person</p>
+  </footer>
 
   <!-- WEIGHTS MODAL -->
   <div id="weightsModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Scoring weights">
@@ -713,7 +801,7 @@
   <div id="aboutModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="About Horse Selector">
     <div class="modal-body about-modal-body">
       <div class="about-header">
-        <span class="logo">🐎</span>
+        <span class="logo">HS</span>
         <div>
           <h2>Horse Selector</h2>
           <p class="about-sub">Auction Buying &amp; Breeding Evaluation Tool</p>
@@ -728,17 +816,17 @@
 
         <div class="about-modes">
           <div class="about-mode-card">
-            <div class="about-mode-icon">🏷️</div>
+            <div class="about-mode-icon">01</div>
             <strong>Auction Buy</strong>
             <p>Score a yearling, weanling, or racing prospect before bidding</p>
           </div>
           <div class="about-mode-card">
-            <div class="about-mode-icon">🐴</div>
+            <div class="about-mode-icon">02</div>
             <strong>Breeding — Mare</strong>
             <p>Evaluate produce record, fertility, and pedigree for pairing</p>
           </div>
           <div class="about-mode-card">
-            <div class="about-mode-icon">⭐</div>
+            <div class="about-mode-icon">03</div>
             <strong>Breeding — Stallion</strong>
             <p>Compare by fee, progeny stats, and nick with your mares</p>
           </div>
@@ -805,20 +893,19 @@
 
         <h3>Key Features</h3>
         <ul class="about-features">
-          <li><strong>Guided read</strong> — The 5 pillars become a live teaching checklist: what to look at, why it
-            matters, your current read, and which fields you still need</li>
-          <li><strong>Learn from the legends</strong> — See why an elite horse's page is elite, in plain language</li>
-          <li><strong>Plain-language glossary</strong> — Every bit of jargon on the form, explained for first-timers</li>
-          <li><strong>Due-diligence report</strong> — One-click printable "bring this to your agent &amp; vet" summary
-            (read, pillars, red flags, price check, pre-bid checklist)</li>
+          <li><strong>Evaluation summary</strong> — Reviews five assessment areas and shows which fields are missing</li>
+          <li><strong>Example records</strong> — Shows how completed public-record fields affect the summary</li>
+          <li><strong>Glossary</strong> — Defines the terms used throughout the form</li>
+          <li><strong>Due-diligence report</strong> — Printable summary of the recorded fields, concerns, price check,
+            and pre-bid checklist</li>
           <li><strong>Price sanity check</strong> — Compares your reserve to a sale's real published median (13
             sales/books)</li>
           <li><strong>Auto-save draft</strong> — Your in-progress horse is saved as you type and offered back next
             visit</li>
-          <li><strong>Real Horse Presets</strong> — Load verified public-record data for 23 famous horses (Secretariat,
-            Frankel, Winx, etc.) with one click</li>
+          <li><strong>Example records</strong> — Load verified public-record data for 23 horses, including Secretariat,
+            Frankel, and Winx</li>
           <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
-          <li><strong>Value Score</strong> — Overall Score ÷ price, surfacing quality below market price</li>
+          <li><strong>Value Score</strong> — A rough overall-score-to-price ratio</li>
           <li><strong>Side-by-side Compare</strong> — Select 2–4 horses; a 5-pillar radar chart plus a full
             field-by-field table with best/worst highlighting</li>
           <li><strong>Sale management</strong> — Tag horses Watching / Shortlist / Passed / Bought, filter by status,
@@ -826,7 +913,7 @@
           <li><strong>CSV Export</strong> — Spreadsheet-ready export including all sub-scores for Excel or Google Sheets
           </li>
           <li><strong>JSON Backup</strong> — Full backup and restore of all records</li>
-          <li><strong>Custom Weights</strong> — Adjust how much each category counts per evaluation mode (⚖ Weights
+          <li><strong>Custom Weights</strong> — Adjust how much each category counts per evaluation mode (Weights
             button)</li>
           <li><strong>Selection Guide tab</strong> — Built-in reference explaining every factor and the research behind
             it</li>
@@ -861,7 +948,7 @@
   <div id="glossaryModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Glossary of terms">
     <div class="modal-body about-modal-body">
       <div class="about-header">
-        <span class="logo">📖</span>
+        <span class="logo">Aa</span>
         <div>
           <h2>Glossary — plain English</h2>
           <p class="about-sub">Every bit of jargon on this form, explained simply</p>
@@ -970,7 +1057,7 @@
         <span class="report-toolbar-title">📋 Due-diligence report</span>
         <div class="report-toolbar-actions">
           <button class="btn" id="btnShareReport">🔗 Copy link</button>
-          <button class="btn primary" id="btnPrintReport">🖨 Print / Save as PDF</button>
+          <button class="btn primary" id="btnPrintReport">Print / Save as PDF</button>
           <button class="btn ghost" id="btnCloseReport">✕ Close</button>
         </div>
       </div>
@@ -983,10 +1070,10 @@
     aria-label="Sale-day shortlist">
     <div class="modal-body report-modal-body">
       <div class="report-toolbar no-print">
-        <span class="report-toolbar-title">🖨 Sale-day shortlist</span>
+        <span class="report-toolbar-title">Sale-day shortlist</span>
         <div class="report-toolbar-actions">
-          <button class="btn" id="btnShortlistCsv">⬇ CSV</button>
-          <button class="btn primary" id="btnPrintShortlist">🖨 Print / Save as PDF</button>
+          <button class="btn" id="btnShortlistCsv">Export CSV</button>
+          <button class="btn primary" id="btnPrintShortlist">Print / Save as PDF</button>
           <button class="btn ghost" id="btnCloseShortlist">✕ Close</button>
         </div>
       </div>
