@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.10.0'; // bump this each release to trigger update prompt
+const APP_VERSION='1.11.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -718,48 +718,91 @@ function applyModeClasses() {
 applyModeClasses();
 
 // ---------- List view ----------
-function renderList() {
+// Optional lifecycle stage for managing a sale (kept simple on purpose).
+const STAGES=[
+  {v: 'watching',label: 'Watching',cls: 'stg-watch'},
+  {v: 'shortlist',label: 'Shortlist',cls: 'stg-short'},
+  {v: 'passed',label: 'Passed',cls: 'stg-pass'},
+  {v: 'bought',label: 'Bought',cls: 'stg-bought'}
+];
+const STAGE_BY=Object.fromEntries(STAGES.map(s => [s.v,s]));
+
+function listSelection() {
   const horses=loadHorses();
   const mode=currentMode();
   const search=(document.getElementById('search').value||'').toLowerCase();
-  const sortBy=document.getElementById('sortBy').value;
+  const sortBy=(document.getElementById('sortBy')||{}).value||'score';
+  const statusEl=document.getElementById('statusFilter');
+  const status=statusEl? statusEl.value:'';
 
   let items=horses.map(h => {
     const s=computeScores(h,mode);
-    return {h,s,vs: valueScore(h,mode,s.overall)};
+    return {h,s,vs: valueScore(h,mode,s.overall),p: computeFivePillars(h,mode)};
   });
-
   if(search) {
     items=items.filter(x => {
-      const blob=`${x.h.name} ${x.h.sire||''} ${x.h.dam||''} ${x.h.consignor||''}`.toLowerCase();
+      const blob=`${x.h.name} ${x.h.sire||''} ${x.h.dam||''} ${x.h.consignor||''} ${x.h.hip||''}`.toLowerCase();
       return blob.includes(search);
     });
   }
-
+  if(status) items=items.filter(x => (x.h.status||'')===status);
   items.sort((a,b) => {
     switch(sortBy) {
-      case 'value':
-        return (b.vs||-1)-(a.vs||-1);
-      case 'name':
-        return (a.h.name||'').localeCompare(b.h.name||'');
-      case 'price':
-        return (a.h.aReserve||1e15)-(b.h.aReserve||1e15);
-      case 'date':
-        return (b.h.created||0)-(a.h.created||0);
-      default:
-        return b.s.overall-a.s.overall;
+      case 'value': return (b.vs||-1)-(a.vs||-1);
+      case 'name': return (a.h.name||'').localeCompare(b.h.name||'');
+      case 'price': return (a.h.aReserve||1e15)-(b.h.aReserve||1e15);
+      case 'date': return (b.h.created||0)-(a.h.created||0);
+      default: return b.s.overall-a.s.overall;
     }
   });
+  return {items,mode,total: horses.length};
+}
+
+function renderOverview(items,total,shown) {
+  const el=document.getElementById('listOverview');
+  if(!el) return;
+  if(!total) {el.innerHTML=''; return;}
+  let buy=0,sl=0,pass=0;
+  const stg={watching: 0,shortlist: 0,passed: 0,bought: 0};
+  items.forEach(({h,p}) => {
+    if(p.decision.cls==='decision-buy') buy++;
+    else if(p.decision.cls==='decision-shortlist') sl++;
+    else if(p.decision.cls==='decision-pass') pass++;
+    if(h.status&&stg[h.status]!=null) stg[h.status]++;
+  });
+  const chip=(n,label,cls) => n? `<span class="ov-chip ${cls}">${n} ${label}</span>`:'';
+  el.innerHTML=`<span class="ov-count">${shown}${shown!==total? ' of '+total:''} horse${total===1? '':'s'}</span>
+    <span class="ov-group">${chip(buy,'buy-leaning','ov-buy')}${chip(sl,'shortlist read','ov-short')}${chip(pass,'pass read','ov-pass')}</span>
+    <span class="ov-group">${chip(stg.shortlist,'★ shortlisted','ov-stg')}${chip(stg.bought,'✓ bought','ov-stg')}${chip(stg.passed,'✕ passed','ov-stg')}</span>`;
+}
+
+function statusSelectHtml(h) {
+  const cur=h.status||'';
+  const opts=['<option value="">+ status</option>']
+    .concat(STAGES.map(s => `<option value="${s.v}"${cur===s.v? ' selected':''}>${s.label}</option>`))
+    .join('');
+  const cls=cur&&STAGE_BY[cur]? STAGE_BY[cur].cls:'';
+  return `<select class="card-status ${cls}" aria-label="Set status for ${escapeHtml(h.name)}"
+    onchange="setHorseStatus('${h.id}',this.value)">${opts}</select>`;
+}
+
+function renderList() {
+  const {items,mode,total}=listSelection();
+  renderOverview(items,total,items.length);
 
   const list=document.getElementById('horseList');
-  if(!items.length) {
+  if(!total) {
     list.innerHTML=`<p style="color:var(--muted);padding:40px;text-align:center;grid-column:1/-1;">
       No horses saved yet. Go to <strong>Add / Edit Horse</strong> to begin.</p>`;
     return;
   }
+  if(!items.length) {
+    list.innerHTML=`<p style="color:var(--muted);padding:40px;text-align:center;grid-column:1/-1;">
+      No horses match your search / filter.</p>`;
+    return;
+  }
 
-  list.innerHTML=items.map(({h,s,vs}) => {
-    const p=computeFivePillars(h,mode,currentScoreMode());
+  list.innerHTML=items.map(({h,s,vs,p}) => {
     const ps=priceSanity(h);
     const color=s.overall>=75? 'var(--good)':
       s.overall>=55? 'var(--warn)':'var(--bad)';
@@ -776,13 +819,16 @@ function renderList() {
       +coatPlaceholder('horse-card-photo-placeholder',h.color,h.name,true)
       :coatPlaceholder('horse-card-photo-placeholder',h.color,h.name,false);
     return `
-      <div class="horse-card" data-id="${h.id}">
+      <div class="horse-card${h.status? ' has-status':''}" data-id="${h.id}">
         ${photoHtml}
         <div class="score-badge" style="--score:${s.overall};--score-color:${color}">
           <span>${s.overall}</span>
         </div>
         <div class="horse-card-body">
-          <h3>${escapeHtml(h.name)}</h3>
+          <div class="card-head">
+            <h3>${escapeHtml(h.name)}</h3>
+            ${statusSelectHtml(h)}
+          </div>
           <div class="meta">
             ${h.sex? escapeHtml(h.sex):''} ${h.hip? '· Hip '+escapeHtml(h.hip):''}
             ${h.venue? '· '+escapeHtml(h.venue):''}
@@ -801,6 +847,15 @@ function renderList() {
       </div>`;
   }).join('');
 }
+
+window.setHorseStatus=function(id,value) {
+  const horses=loadHorses();
+  const i=horses.findIndex(x => x.id===id);
+  if(i<0) return;
+  if(value) horses[i].status=value; else delete horses[i].status;
+  horses[i].updated=Date.now();
+  if(saveHorses(horses)) renderList();
+};
 
 function escapeHtml(s) {
   return String(s??'').replace(/[&<>"']/g,c =>
@@ -829,6 +884,12 @@ function coatPlaceholder(cls,color,name,hidden) {
 
 document.getElementById('search').addEventListener('input',renderList);
 document.getElementById('sortBy').addEventListener('change',renderList);
+(function wireListControls() {
+  const sf=document.getElementById('statusFilter');
+  if(sf) sf.addEventListener('change',renderList);
+  const sb=document.getElementById('btnShortlist');
+  if(sb) sb.addEventListener('click',() => openShortlist());
+})();
 
 window.editHorse=function(id) {
   const h=loadHorses().find(x => x.id===id);
@@ -1251,16 +1312,159 @@ function renderCompare() {
   renderCompareTable();
 }
 
+const RADAR_COLORS=['#c9a84c','#3d8bd4','#8e5bd0','#3dbb6e'];
+// A 5-axis radar of the pillars for 2–4 horses — a fast visual read of shape & trade-offs.
+function renderCompareRadar(horses,mode) {
+  const out=document.getElementById('compareRadar');
+  if(!out) return;
+  if(horses.length<2) {out.innerHTML=''; return;}
+  const axes=[['pillarGenetics','Genetics'],['pillarSoundness','Soundness'],
+    ['pillarPerformance','Performance'],['pillarValue','Value'],['pillarMind','Mind']];
+  const N=axes.length,size=360,cx=size/2,cy=size/2,R=size/2-64;
+  const ang=i => -Math.PI/2+i*2*Math.PI/N;
+  const pt=(i,r) => [cx+Math.cos(ang(i))*r*R,cy+Math.sin(ang(i))*r*R];
+  let grid='';
+  [0.25,0.5,0.75,1].forEach(f => {
+    grid+=`<polygon points="${axes.map((_,i) => pt(i,f).map(n => n.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="var(--border)" stroke-width="1"/>`;
+  });
+  let axisSvg='';
+  axes.forEach(([,label],i) => {
+    const [x,y]=pt(i,1),[lx,ly]=pt(i,1.16);
+    const anchor=Math.abs(lx-cx)<6? 'middle':(lx>cx? 'start':'end');
+    axisSvg+=`<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>`
+      +`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" font-size="12" fill="var(--muted)" text-anchor="${anchor}" dominant-baseline="middle">${label}</text>`;
+  });
+  let polys='',legend='';
+  horses.forEach((h,idx) => {
+    const p=computeFivePillars(h,mode);
+    const pts=axes.map(([key],i) => {
+      const v=p.pillars[key];
+      return pt(i,(v==null? 0:clamp(v,0,100))/100).map(n => n.toFixed(1)).join(',');
+    }).join(' ');
+    const c=RADAR_COLORS[idx%RADAR_COLORS.length];
+    polys+=`<polygon points="${pts}" fill="${c}" fill-opacity="0.13" stroke="${c}" stroke-width="2"/>`;
+    legend+=`<span class="radar-leg"><span class="radar-dot" style="background:${c}"></span>${escapeHtml(h.name)}</span>`;
+  });
+  out.innerHTML=`<div class="radar-wrap">
+    <svg viewBox="-52 -18 ${size+104} ${size+34}" class="radar-svg" role="img" aria-label="Pillar comparison radar chart">${grid}${axisSvg}${polys}</svg>
+    <div class="radar-legend">${legend}</div>
+  </div>`;
+}
+
+// ---------- Sale-day shortlist (compact, printable, exportable) ----------
+function buildShortlist(items,mode) {
+  const rows=items.map(({h,p}) => {
+    const ps=priceSanity(h);
+    const flags=redFlags(h);
+    const hardStop=flags.some(f => f.level==='stop');
+    const flagTxt=hardStop? 'HARD STOP':(flags.length? flags.length+' flag'+(flags.length>1? 's':''):'—');
+    const ped=[h.sire,h.dam].filter(Boolean).join(' × ')||'—';
+    return `<tr>
+      <td>${h.hip? escapeHtml(h.hip):'—'}</td>
+      <td><strong>${escapeHtml(h.name)}</strong><div class="sl-ped">${escapeHtml(ped)}</div></td>
+      <td class="sl-num">${p.score==null? '—':p.score}</td>
+      <td>${p.decision.text}</td>
+      <td class="sl-num">${h.aReserve? fmtUSD(h.aReserve):'—'}</td>
+      <td>${ps.band? ps.band.label:'—'}</td>
+      <td class="${hardStop? 'sl-stop':''}">${flagTxt}</td>
+      <td>${h.status&&STAGE_BY[h.status]? STAGE_BY[h.status].label:'—'}</td>
+    </tr>`;
+  }).join('');
+  const modeLabel=modeSel.options[modeSel.selectedIndex].text;
+  return `<div class="report-doc sl-doc">
+    <header class="rp-head"><div class="rp-title"><span class="rp-logo">🐎</span>
+      <div><h2>Sale-day shortlist</h2>
+      <p class="rp-sub">${items.length} horse${items.length===1? '':'s'} · ${escapeHtml(modeLabel)} · on-paper reads from your inputs</p></div></div></header>
+    <table class="rp-table sl-table"><thead><tr>
+      <th>Hip</th><th>Horse</th><th>Score</th><th>Read</th><th>Reserve</th><th>Price vs sale</th><th>Flags</th><th>Status</th>
+    </tr></thead><tbody>${rows}</tbody></table>
+    <footer class="rp-foot">On-paper reads organise your judgement — they are not a prediction of racing success.
+      Inspect and vet every horse in person before bidding.</footer>
+  </div>`;
+}
+window.openShortlist=function() {
+  const {items,mode}=listSelection();
+  const modal=document.getElementById('shortlistModal');
+  const content=document.getElementById('shortlistContent');
+  if(!modal||!content) return;
+  if(!items.length) {toast('No horses to list yet','info'); return;}
+  content.innerHTML=buildShortlist(items,mode);
+  modal.classList.remove('hidden');
+};
+function shortlistCsv() {
+  const {items}=listSelection();
+  if(!items.length) {toast('No horses to export','info'); return;}
+  const head=['Hip','Name','Sire','Dam','OnPaperScore','Read','Reserve','PriceVsSale','Flags','Status'];
+  const rows=items.map(({h,p}) => {
+    const ps=priceSanity(h);
+    const flags=redFlags(h);
+    const flagTxt=flags.some(f => f.level==='stop')? 'HARD STOP':flags.map(f => f.text).join('; ');
+    return [h.hip||'',h.name||'',h.sire||'',h.dam||'',p.score==null? '':p.score,p.decision.text,
+      h.aReserve||'',ps.band? ps.band.label:'',flagTxt,h.status&&STAGE_BY[h.status]? STAGE_BY[h.status].label:'']
+      .map(csvCell).join(',');
+  });
+  download('sale-day-shortlist.csv',head.join(',')+'\n'+rows.join('\n'),'text/csv');
+  toast(`Shortlist CSV — ${items.length} horse${items.length===1? '':'s'}`);
+}
+(function initShortlist() {
+  const modal=document.getElementById('shortlistModal');
+  if(!modal) return;
+  const close=document.getElementById('btnCloseShortlist');
+  const print=document.getElementById('btnPrintShortlist');
+  const csv=document.getElementById('btnShortlistCsv');
+  if(close) close.addEventListener('click',() => modal.classList.add('hidden'));
+  if(print) print.addEventListener('click',() => window.print());
+  if(csv) csv.addEventListener('click',shortlistCsv);
+  modal.addEventListener('click',e => {if(e.target===modal) modal.classList.add('hidden');});
+})();
+
+// ---------- Bulk add from a catalogue paste ----------
+function parseBulk(text) {
+  return String(text||'').split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    const parts=line.split(/\s*[|,\t]\s*/);
+    const name=(parts[0]||'').trim();
+    if(!name) return null;
+    const h={name};
+    if(parts[1]) h.sire=parts[1].trim();
+    if(parts[2]) h.dam=parts[2].trim();
+    const pr=num(parts[3]);
+    if(pr!=null) h.aReserve=pr;
+    return h;
+  }).filter(Boolean);
+}
+(function initBulkAdd() {
+  const btn=document.getElementById('btnBulkAdd');
+  const ta=document.getElementById('bulkInput');
+  if(!btn||!ta) return;
+  btn.addEventListener('click',() => {
+    const parsed=parseBulk(ta.value);
+    if(!parsed.length) {toast('Nothing to add — enter one horse per line','info'); return;}
+    if(!confirm(`Add ${parsed.length} horse${parsed.length===1? '':'s'} to your saved list?`)) return;
+    const horses=loadHorses();
+    parsed.forEach((h,k) => {
+      h.id='h_'+Date.now()+'_'+k+'_'+Math.random().toString(36).slice(2,6);
+      h.created=Date.now();
+      horses.push(h);
+    });
+    if(!saveHorses(horses)) return;
+    ta.value='';
+    toast(`Added ${parsed.length} horse${parsed.length===1? '':'s'}`);
+    renderList();
+    switchView('list');
+  });
+})();
+
 function renderCompareTable() {
   const ids=[...document.querySelectorAll('#compareSelect input:checked')]
     .map(c => c.value).slice(0,4);
   const horses=loadHorses().filter(h => ids.includes(h.id));
   const out=document.getElementById('compareTable');
+  const mode=currentMode();
+  renderCompareRadar(horses,mode);
   if(horses.length<2) {
     out.innerHTML=`<p style="color:var(--muted)">Pick at least 2 horses.</p>`;
     return;
   }
-  const mode=currentMode();
   const scores=horses.map(h => computeScores(h,mode));
 
   const fields=[

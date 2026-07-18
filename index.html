@@ -517,23 +517,33 @@
 
     <!-- ============== LIST VIEW ============== -->
     <section id="view-list" class="view">
+      <div id="listOverview" class="list-overview"></div>
       <div class="toolbar">
-        <input id="search" placeholder="Search by name, sire, dam..." />
-        <select id="sortBy">
+        <input id="search" placeholder="Search by name, sire, dam, hip..." />
+        <select id="sortBy" aria-label="Sort horses">
           <option value="score">Sort: Overall Score</option>
           <option value="value">Sort: Value Score (score / price)</option>
           <option value="name">Sort: Name</option>
           <option value="price">Sort: Price (low → high)</option>
           <option value="date">Sort: Date Added</option>
         </select>
+        <select id="statusFilter" aria-label="Filter by status">
+          <option value="">All statuses</option>
+          <option value="watching">Watching</option>
+          <option value="shortlist">Shortlist</option>
+          <option value="passed">Passed</option>
+          <option value="bought">Bought</option>
+        </select>
+        <button class="btn" id="btnShortlist" title="A compact printable / exportable shortlist">🖨 Shortlist</button>
       </div>
       <div id="horseList" class="horse-list"></div>
     </section>
 
     <!-- ============== COMPARE VIEW ============== -->
     <section id="view-compare" class="view">
-      <p class="hint">Select 2–4 horses to compare side-by-side.</p>
+      <p class="hint">Select 2–4 horses to compare their pillar shape and every field side-by-side.</p>
       <div id="compareSelect" class="compare-select"></div>
+      <div id="compareRadar"></div>
       <div id="compareTable"></div>
     </section>
 
@@ -553,6 +563,19 @@
         <h2>Import</h2>
         <p>Load a previously exported JSON backup. <strong>Replaces current data.</strong></p>
         <input type="file" id="importFile" accept=".json" />
+      </div>
+      <div class="card">
+        <h2>Bulk add from a catalogue</h2>
+        <details class="advanced-block">
+          <summary>Paste a list of horses to add them all at once</summary>
+          <p class="hint" style="margin:8px 0">One horse per line: <code>Name/Hip, Sire, Dam, Reserve</code> (comma-,
+            pipe- or tab-separated; only the name is required). Great for building a shortlist fast from a sale
+            catalogue, then filling in details later.</p>
+          <textarea id="bulkInput" rows="5"
+            placeholder="Hip 42, Into Mischief, Leslie's Lady, 120000&#10;Hip 88, Curlin, Sheriff's Deputy, 80000&#10;Hip 210"></textarea>
+          <div style="margin-top:10px"><button type="button" class="btn primary" id="btnBulkAdd">Add these
+              horses</button></div>
+        </details>
       </div>
       <div class="card danger">
         <h2>Danger Zone</h2>
@@ -796,8 +819,10 @@
             Frankel, Winx, etc.) with one click</li>
           <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
           <li><strong>Value Score</strong> — Overall Score ÷ price, surfacing quality below market price</li>
-          <li><strong>Side-by-side Compare</strong> — Select 2–4 horses; best/worst values highlighted automatically
-          </li>
+          <li><strong>Side-by-side Compare</strong> — Select 2–4 horses; a 5-pillar radar chart plus a full
+            field-by-field table with best/worst highlighting</li>
+          <li><strong>Sale management</strong> — Tag horses Watching / Shortlist / Passed / Bought, filter by status,
+            and print a compact sale-day shortlist</li>
           <li><strong>CSV Export</strong> — Spreadsheet-ready export including all sub-scores for Excel or Google Sheets
           </li>
           <li><strong>JSON Backup</strong> — Full backup and restore of all records</li>
@@ -938,7 +963,8 @@
   </div>
 
   <!-- DUE-DILIGENCE REPORT MODAL -->
-  <div id="reportModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Due-diligence report">
+  <div id="reportModal" class="modal print-modal hidden" role="dialog" aria-modal="true"
+    aria-label="Due-diligence report">
     <div class="modal-body report-modal-body">
       <div class="report-toolbar no-print">
         <span class="report-toolbar-title">📋 Due-diligence report</span>
@@ -949,6 +975,22 @@
         </div>
       </div>
       <div id="reportContent"></div>
+    </div>
+  </div>
+
+  <!-- SALE-DAY SHORTLIST MODAL -->
+  <div id="shortlistModal" class="modal print-modal hidden" role="dialog" aria-modal="true"
+    aria-label="Sale-day shortlist">
+    <div class="modal-body report-modal-body">
+      <div class="report-toolbar no-print">
+        <span class="report-toolbar-title">🖨 Sale-day shortlist</span>
+        <div class="report-toolbar-actions">
+          <button class="btn" id="btnShortlistCsv">⬇ CSV</button>
+          <button class="btn primary" id="btnPrintShortlist">🖨 Print / Save as PDF</button>
+          <button class="btn ghost" id="btnCloseShortlist">✕ Close</button>
+        </div>
+      </div>
+      <div id="shortlistContent"></div>
     </div>
   </div>
 

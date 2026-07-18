@@ -85,7 +85,10 @@ Northern Hemisphere thoroughbreds all share a universal January 1 birthday. Janu
 | **Real Horse Presets** | Load verified public-record data for 23 famous horses (Secretariat, Frankel, American Pharoah, Winx, etc.) with one click |
 | **Live Scoring** | Score updates in real time as you fill the form |
 | **Saved Horses** | All entries persist in browser localStorage — no account needed |
-| **Side-by-Side Compare** | Select 2–4 horses; best/worst values highlighted automatically |
+| **Side-by-Side Compare** | Select 2–4 horses; a **5-pillar radar chart** shows each horse's shape at a glance, plus a full field-by-field table with best/worst highlighting |
+| **Sale management** | Tag each horse **Watching / Shortlist / Passed / Bought**, filter by status, and see a live overview (how many are buy-leaning, shortlisted, etc.) |
+| **Sale-day shortlist** | One compact, **printable / CSV** table of your saved horses — hip, pedigree, score, read, price-vs-sale, red flags, status — built for the ring |
+| **Bulk add** | Paste a list from a catalogue (`Name, Sire, Dam, Reserve` per line) to create many horses at once |
 | **Sort & Search** | By overall score, value score, name, price, or date added |
 | **CSV Export** | Full spreadsheet-ready export including all scores, ready for Excel/Sheets |
 | **JSON Backup / Restore** | Full backup of all horse records |
