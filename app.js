@@ -442,8 +442,9 @@ function computeScores(h,mode) {
   return {overall: Math.round(overall),categories: cat};
 }
 
-function valueScore(h,mode) {
-  const s=computeScores(h,mode).overall;
+function valueScore(h,mode,overall) {
+  // `overall` may be passed in to avoid recomputing computeScores() when the caller already has it.
+  const s=overall!=null? overall:computeScores(h,mode).overall;
   const price=h.aReserve||h.aMarketEst||h.bStudFee||0;
   if(!price) return null;
   return Math.round((s/(price/10000))*10)/10;
@@ -600,7 +601,9 @@ form.addEventListener('submit',e => {
     const i=horses.findIndex(x => x.id===h.id);
     if(i>=0) horses[i]={...horses[i],...h,updated: Date.now()};
   }
-  saveHorses(horses);
+  // If the write fails (quota/private mode), keep the form data so the user can retry —
+  // don't clear the draft, reset the form, or claim it saved.
+  if(!saveHorses(horses)) return;
   clearDraft();
   toast(`Saved: ${h.name}`);
   form.reset();
@@ -723,7 +726,7 @@ function renderList() {
 
   let items=horses.map(h => {
     const s=computeScores(h,mode);
-    return {h,s,vs: valueScore(h,mode)};
+    return {h,s,vs: valueScore(h,mode,s.overall)};
   });
 
   if(search) {
@@ -1398,7 +1401,7 @@ document.getElementById('importFile').addEventListener('change',e => {
       const data=JSON.parse(reader.result);
       if(!Array.isArray(data)) throw new Error('Expected an array');
       if(!confirm(`Import ${data.length} horses? This replaces current data.`)) return;
-      saveHorses(data);
+      if(!saveHorses(data)) return;
       renderList();
       toast(`Imported ${data.length} horse${data.length===1? '':'s'}`);
     } catch(err) {
