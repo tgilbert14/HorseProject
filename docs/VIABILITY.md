@@ -285,6 +285,15 @@ Cheap, unambiguous trust fixes that move the app toward "wantable" regardless of
   syndicate share*. Frame every paid step as *"avoid a five-figure mistake,"* never *"win with
   our algorithm."*
 
+### Shipped since (follow-up iterations)
+Beyond the phased plan above, later passes added: a **shareable report link** (send the
+due-diligence sheet with no backend), **toast** notifications, **accessibility** (focus-managed
+dialogs, OS-theme preference), a **first-run welcome**, storage-failure handling, and a
+**sale-management** layer — per-horse status (Watching / Shortlist / Passed / Bought) with a
+filter and overview, a 5-pillar **compare radar**, a printable/CSV **sale-day shortlist**, and
+**bulk add** from a catalogue paste. All browser-verified. The deferred items remain the
+backend-dependent ones (cloud sync) and go-to-market (distribution).
+
 ---
 
 ## 10. What NOT to do
