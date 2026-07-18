@@ -66,42 +66,51 @@
           Conformation, vet, and temperament are blank by default — only fill those in when you've
           actually inspected the horse. Anything left blank is treated as <em>unknown</em>, not "clean".
         </p>
-        <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
-          <strong>OR</strong> <button type="button" class="btn ghost" id="btnEnterOwnHorse">Enter your own horse to
-            evaluate</button>
+        <div class="preset-actions">
+          <span><strong>OR</strong> <button type="button" class="btn ghost" id="btnEnterOwnHorse">Enter your own horse
+              to evaluate</button></span>
+          <button type="button" class="btn ghost glossary-btn" id="btnGlossary">📖 New to this? Glossary of
+            terms</button>
         </div>
+      </div>
+
+      <!-- Unsaved-draft restore banner -->
+      <div id="draftBanner" class="draft-banner hidden">
+        <span>💾 You have an unsaved horse from last time<span id="draftBannerName" class="draft-name"></span>.</span>
+        <button type="button" class="btn primary" id="btnRestoreDraft">Restore it</button>
+        <button type="button" class="btn ghost" id="btnDiscardDraft">Discard</button>
       </div>
 
       <form id="horseForm" autocomplete="off">
 
-        <!-- HERO: 5-Pillar Decision -->
+        <!-- HERO: guided read (a teaching checklist, not a verdict) -->
         <div class="card hero-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h2 style="margin: 0;">Decision <span class="hint">live — updates as you fill the form</span></h2>
+          <div class="hero-head">
+            <h2 style="margin: 0;">Your guided read <span class="hint">live — a checklist, not a verdict</span></h2>
             <button type="button" class="btn" id="btnSaveFromHero">💾 Save horse</button>
           </div>
-          <div class="pillar-summary">
-            <span>5-Pillar Score: <strong id="pillarScore">—</strong> / 100</span>
-            <span>On-paper read: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
-            <span>Data filled: <strong id="pillarConfidence">—</strong> <button type="button" class="info"
-                data-info="How many of the 9 categories you've entered data for — a measure of how complete YOUR inputs are, not a probability of racing success.">ⓘ</button></span>
+
+          <div class="read-strip">
+            <div class="read-score">
+              <span class="read-score-num" id="pillarScore">—</span>
+              <span class="read-score-cap">on-paper score<br>/ 100 · from your inputs</span>
+            </div>
+            <div class="read-meta">
+              <span class="read-line">On-paper read: <strong id="pillarDecision"
+                  class="decision decision-wait">Needs more data</strong></span>
+              <span class="read-line">Data filled: <strong id="pillarConfidence">—</strong> <button type="button"
+                  class="info"
+                  data-info="How many of the 9 categories you've entered data for — a measure of how complete YOUR inputs are, not a probability of racing success.">ⓘ</button></span>
+            </div>
           </div>
           <p class="hint hero-hint">
-            This score is a structured roll-up of <em>the data you entered</em> — not a prediction of racing
-            success. Even the strongest signals available at the yearling stage explain only a small share of
-            how a horse turns out, so treat this as a checklist that organizes your judgement, not a verdict.
-            Never bid without in-person inspection and an independent vet review.
+            This is a structured roll-up of <em>the data you entered</em> — not a prediction of racing success.
+            Even the strongest signals at the yearling stage explain only a small share of how a horse turns out.
+            Use the checklist below to see <em>what to look at, why, and where you still need to dig</em>. Never bid
+            without in-person inspection and an independent vet review.
           </p>
 
-          <div class="benchmark-head">
-            <h3>Compare to historical benchmarks</h3>
-            <select id="benchmarkFilter">
-              <option value="all">All presets</option>
-              <option value="elite">Elite champions</option>
-              <option value="value">Value-buys</option>
-            </select>
-          </div>
-          <div id="benchmarkTable"></div>
+          <div id="pillarChecklist" class="pillar-checklist"></div>
 
           <details class="pillar-guide">
             <summary>What the 5 pillars mean (1–10 rubric)</summary>
@@ -143,6 +152,16 @@
               </div>
             </div>
           </details>
+        </div>
+
+        <!-- LEARN FROM THE LEGENDS (education, not a leaderboard) -->
+        <div class="card legends-card">
+          <div class="legends-head">
+            <h2 style="margin:0;">Learn from the legends <span class="hint">what an elite page looks like — and
+                why</span></h2>
+            <select id="legendSelect" aria-label="Choose a legendary horse to learn from"></select>
+          </div>
+          <div id="legendPanel"></div>
         </div>
 
         <!-- IDENTITY -->
@@ -724,6 +743,12 @@
 
         <h3>Key Features</h3>
         <ul class="about-features">
+          <li><strong>Guided read</strong> — The 5 pillars become a live teaching checklist: what to look at, why it
+            matters, your current read, and which fields you still need</li>
+          <li><strong>Learn from the legends</strong> — See why an elite horse's page is elite, in plain language</li>
+          <li><strong>Plain-language glossary</strong> — Every bit of jargon on the form, explained for first-timers</li>
+          <li><strong>Auto-save draft</strong> — Your in-progress horse is saved as you type and offered back next
+            visit</li>
           <li><strong>Real Horse Presets</strong> — Load verified public-record data for 23 famous horses (Secretariat,
             Frankel, Winx, etc.) with one click</li>
           <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
@@ -760,6 +785,107 @@
             ↗</a>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOSSARY MODAL -->
+  <div id="glossaryModal" class="modal hidden">
+    <div class="modal-body about-modal-body">
+      <div class="about-header">
+        <span class="logo">📖</span>
+        <div>
+          <h2>Glossary — plain English</h2>
+          <p class="about-sub">Every bit of jargon on this form, explained simply</p>
+        </div>
+        <button class="btn ghost about-close" id="btnCloseGlossary">✕ Close</button>
+      </div>
+
+      <div class="about-content glossary-content">
+        <h3>Pedigree &amp; breeding</h3>
+        <dl>
+          <dt>Sire / Dam / Damsire</dt>
+          <dd>The father, the mother, and the mother's father. The damsire matters because the female
+            family is often the most reliable part of a pedigree.</dd>
+          <dt>AEI — Average Earnings Index</dt>
+          <dd>How much a sire's foals earn compared with an average horse. 1.0 = average, 2.0+ = elite. It's
+            an <em>earnings</em> ratio, so it's inflated by big-money opportunities — a clue, not gospel.</dd>
+          <dt>CI — Comparable Index</dt>
+          <dd>What the sire's mares were already producing <em>before</em> him. Reading AEI next to CI tells you
+            how much credit the sire really deserves.</dd>
+          <dt>Black-type</dt>
+          <dd>Bold/italic names in a sales catalogue — relatives who won or placed in <em>stakes</em> (the best)
+            races. The closer up the page, the stronger the family.</dd>
+          <dt>Nick / nicking</dt>
+          <dd>How well a sire's bloodline has historically "clicked" with the damsire's bloodline, graded A+ down
+            to F. Some crosses produce stakes winners far more often than chance.</dd>
+          <dt>Dosage Index</dt>
+          <dd>A rough speed-vs-stamina number from a horse's key ancestors. ~2–4 leans speed, under 1 leans
+            stamina/turf. Contested and distance-oriented — treat lightly.</dd>
+          <dt>Inbreeding</dt>
+          <dd>The same superior ancestor appearing on both sides (e.g. "3×4"). A little can concentrate quality;
+            a lot raises risk.</dd>
+          <dt>Produce record</dt>
+          <dd>For a mare: the foals she's had and how they ran. A proven producer usually outweighs her own
+            race record.</dd>
+          <dt>Stud fee / Book size</dt>
+          <dd>What a stallion costs to breed to, and how many mares he covers a year. Both are the market's live
+            vote on how good he is.</dd>
+          <dt>Foaling date</dt>
+          <dd>Every Northern-Hemisphere thoroughbred shares a <em>January 1</em> birthday, so a February foal is
+            physically ahead of a May foal early in their careers.</dd>
+        </dl>
+
+        <h3>On the track</h3>
+        <dl>
+          <dt>Starts / Wins / Places</dt>
+          <dd>Races run, races won, and times finishing 2nd or 3rd. Win-and-place rate matters more than raw
+            totals.</dd>
+          <dt>Speed figure (Beyer / Timeform)</dt>
+          <dd>A single number rating how fast a performance actually was, adjusted for track and conditions.
+            ~100 is Grade 1 class; 118+ is historic.</dd>
+          <dt>Class (Grade / Group 1–3, Listed)</dt>
+          <dd>The level of race. Grade/Group 1 is the top; then G2, G3, Listed, then handicaps/allowances, then
+            maidens (for horses yet to win).</dd>
+        </dl>
+
+        <h3>The horse &amp; the vet</h3>
+        <dl>
+          <dt>Conformation</dt>
+          <dd>The horse's physical build — how its frame, limbs and angles are put together. Related to athletic
+            ability, but only weakly, so don't over-weight it.</dd>
+          <dt>The walk</dt>
+          <dd>A free, ground-covering, over-stepping walk is one of the better physical clues that a horse can
+            gallop. Watch it at the barn.</dd>
+          <dt>Repository / x-rays</dt>
+          <dd>A set of pre-sale x-rays (and scopes) the sale company holds. Your <em>own</em> vet reviews them —
+            a serious finding is a hard reason to walk away.</dd>
+          <dt>Scope / laryngeal grade / "wind" / roaring</dt>
+          <dd>A camera check of the throat. Grades III–IV suggest a breathing (airway) problem that can limit a
+            horse — sometimes called "roaring".</dd>
+          <dt>OCD</dt>
+          <dd>A joint/cartilage flaw (osteochondrosis) that shows on x-rays. Some are minor; some need surgery.</dd>
+          <dt>Cannon / pastern / hock</dt>
+          <dd>Lower-leg parts vets and buyers scrutinise: the cannon should be short and dense, pasterns
+            angled ~45–50°, the hock (the "knee" of the hind leg) strong and correct.</dd>
+        </dl>
+
+        <h3>At the sale</h3>
+        <dl>
+          <dt>Hip / Lot number</dt>
+          <dd>The horse's number in the catalogue and the order it sells in — the sticker is literally on its hip.</dd>
+          <dt>Reserve / RNA</dt>
+          <dd>The minimum the seller will accept. "RNA" (Reserve Not Attained) means it didn't reach that and
+            stayed unsold.</dd>
+          <dt>Consignor</dt>
+          <dd>The seller/agent presenting the horse at the sale. A top consignor's prep and honesty carry weight.</dd>
+          <dt>Pinhook</dt>
+          <dd>Buying a young horse to resell at a profit later (e.g. a weanling to sell as a yearling). A
+            speculative business — fewer than half turn a profit.</dd>
+          <dt>Value Score (this app)</dt>
+          <dd>Overall score ÷ price — a rough quality-per-dollar ratio. Handy for surfacing cheaper horses, but it
+            structurally favours the lowest price, so sanity-check it against real sale prices.</dd>
+        </dl>
       </div>
     </div>
   </div>

@@ -241,14 +241,18 @@ Cheap, unambiguous trust fixes that move the app toward "wantable" regardless of
 - Removed dead CSS + corrected doc/feature drift; added image `referrerpolicy`; fixed the
   preset count (22 → 23); bumped version + SW cache.
 
-### Phase 1 — Novice education MVP *(the pivot proper)*
-- Lead with the **transparent 5-pillar checklist as a teaching tool** ("what to look at,
-  why, where you're missing data"); demote the single number & BUY/PASS to a discussion prompt.
-- Turn the **presets into an interactive "learn what an elite page looks like"** experience
-  — learning-only; never render a live horse's number *next to* an elite preset's.
-- **Cut required fields hard**; mobile-first, glanceable, one-tap, **auto-save**; optimize
-  for building a shortlist the night before and quick barn-side impressions.
-- **Bundle local preset images** (kills offline rot); add a plain-language glossary.
+### Phase 1 — Novice education MVP *(the pivot proper)* — ✅ largely shipped
+- ✅ **Guided read:** the 5 pillars now render as a **teaching checklist** ("what to look
+  at, why it matters, your read, and which fields you still need"), with a **"· limited
+  data"** flag when a strong-looking read rests on very few inputs. The single number is
+  demoted to a small, clearly-labeled "on-paper read."
+- ✅ **Learn from the legends:** presets became an interactive, annotated *"why this page is
+  elite"* experience — explicitly framed as a benchmark to learn from, **not** a bar the
+  user's horse must clear (the old leaderboard that ranked a live horse next to Frankel is gone).
+- ✅ **Auto-save draft** so a first-time buyer never loses work; ✅ **plain-language glossary**
+  (24 terms) for the jargon.
+- ⏳ *Remaining:* **bundle local preset images** (still hotlinked → offline rot), a deeper
+  required-field-reduction pass, and barn-side quick-capture optimizations.
 
 ### Phase 2 — Trust & the one defensible feature
 - **Rebuild "value" into a real price-sanity check** anchored to **published median-by-book

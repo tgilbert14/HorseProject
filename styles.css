@@ -294,44 +294,6 @@ main {
   color: var(--muted);
 }
 
-.benchmark-head {
-  margin-top: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.benchmark-head h3 {
-  margin: 0;
-}
-
-#benchmarkTable table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 8px;
-}
-
-#benchmarkTable th,
-#benchmarkTable td {
-  padding: 7px 9px;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-  text-align: left;
-}
-
-#benchmarkTable th {
-  font-size: 11px;
-  color: var(--accent);
-  text-transform: uppercase;
-  background: var(--panel-2);
-}
-
-#benchmarkTable tr.current-row td {
-  background: var(--panel-2);
-  font-weight: 600;
-}
-
 input,
 select,
 textarea {
@@ -1157,13 +1119,11 @@ button.info:hover {
 }
 
 /* Prevent horizontal cutoff for data-heavy sections on phone */
-#benchmarkTable,
 #compareTable {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-#benchmarkTable table,
 #compareTable table {
   min-width: 740px;
 }
@@ -1270,8 +1230,320 @@ button.info:hover {
     gap: 8px;
   }
 
-  #benchmarkTable table,
   #compareTable table {
     min-width: 640px;
   }
+}
+/* ======================================================================
+   PHASE 1 — Novice education MVP
+   Guided-read checklist · Learn-from-the-legends · draft banner · glossary
+   ====================================================================== */
+
+/* --- hero head + demoted score strip --- */
+.hero-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.read-strip {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.read-score {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.read-score-num {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.read-score-cap {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.25;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.read-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+.read-line strong {
+  color: var(--text);
+}
+
+/* --- the teaching checklist --- */
+.pillar-checklist {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+.pc-row {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--muted);
+  border-radius: 10px;
+}
+.pc-strong { border-left-color: var(--good); }
+.pc-solid  { border-left-color: var(--primary); }
+.pc-mixed  { border-left-color: var(--warn); }
+.pc-weak   { border-left-color: var(--bad); }
+.pc-na     { border-left-color: var(--border-strong); }
+.pc-icon {
+  font-size: 22px;
+  line-height: 1.4;
+  text-align: center;
+}
+.pc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pc-name {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 15px;
+}
+.pc-read {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+.pc-strong .pc-read { color: var(--good); }
+.pc-solid  .pc-read { color: var(--primary); }
+.pc-mixed  .pc-read { color: var(--warn); }
+.pc-weak   .pc-read { color: var(--bad); }
+.pc-na     .pc-read { color: var(--muted); }
+.pc-bar {
+  height: 7px;
+  background: color-mix(in srgb, var(--muted) 22%, transparent);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0 10px;
+}
+.pc-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--muted);
+  transition: width 0.25s ease;
+}
+.pc-strong .pc-fill { background: var(--good); }
+.pc-solid  .pc-fill { background: var(--primary); }
+.pc-mixed  .pc-fill { background: var(--warn); }
+.pc-weak   .pc-fill { background: var(--bad); }
+.pc-why {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.pc-look {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.pc-missing {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.pc-missing span {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 100px;
+  color: var(--text);
+  background: var(--panel);
+}
+.pc-complete {
+  color: var(--good);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-fill { transition: none; }
+}
+
+/* --- learn from the legends --- */
+.legends-card { border-color: var(--accent-2); }
+.legends-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.legends-head h2 {
+  border: 0;
+  padding: 0;
+}
+#legendSelect {
+  width: auto;
+  min-width: 240px;
+  max-width: 100%;
+}
+.legend-card {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+.legend-photo {
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+  object-position: center 20%;
+  border-radius: 10px;
+  border: 2px solid var(--accent-2);
+  background: var(--panel-2);
+}
+.legend-photo-ph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 64px;
+  color: var(--border-strong);
+}
+.legend-body h4 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: var(--text);
+}
+.legend-note {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.55;
+  font-style: italic;
+}
+.legend-insights {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.legend-insights li {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13.5px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.li-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--accent);
+  border: 1px solid var(--border-strong);
+  border-radius: 100px;
+  padding: 2px 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+.legend-foot {
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.55;
+  background: var(--panel-2);
+  border-left: 3px solid var(--good);
+  border-radius: 4px;
+}
+.legend-foot strong { color: var(--good); }
+
+/* --- preset actions + glossary button --- */
+.preset-actions {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.glossary-btn {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.glossary-btn:hover {
+  background: var(--accent);
+  color: #f8fbff;
+}
+
+/* --- draft restore banner --- */
+.draft-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  margin-bottom: 18px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  border: 1px solid var(--accent-2);
+  border-radius: 10px;
+  font-size: 14px;
+}
+.draft-banner.hidden { display: none; }
+.draft-banner > span { flex: 1; min-width: 200px; }
+.draft-name { font-weight: 700; color: var(--accent); }
+.draft-name:not(:empty)::before { content: " — “"; color: var(--muted); font-weight: 400; }
+.draft-name:not(:empty)::after { content: "”"; color: var(--muted); font-weight: 400; }
+
+/* --- glossary modal --- */
+.glossary-content dl {
+  margin: 0 0 8px;
+}
+.glossary-content dt {
+  font-weight: 700;
+  color: var(--text);
+  margin-top: 12px;
+  font-size: 14px;
+}
+.glossary-content dd {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .legend-card { grid-template-columns: 1fr; }
+  .legend-photo { height: 200px; }
+  .legend-insights li { grid-template-columns: 1fr; gap: 3px; }
+  .li-tag { justify-self: start; }
+  .read-meta { margin-left: 0; width: 100%; }
 }

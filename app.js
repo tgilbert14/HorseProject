@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.5.0'; // bump this each release to trigger update prompt
+const APP_VERSION='1.6.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -530,8 +530,9 @@ form.addEventListener('input',e => {
     if(e.target.type==='range') e.target.dataset.touched='1';
   }
   updateLiveScore();
+  scheduleDraftSave();
 });
-form.addEventListener('change',updateLiveScore);
+form.addEventListener('change',() => {updateLiveScore(); scheduleDraftSave();});
 function updateLiveScore() {
   const h=readForm();
   const s=computeScores(h,currentMode());
@@ -548,7 +549,7 @@ function updateLiveScore() {
     pillarDecisionEl.className=`decision ${p.decision.cls}`;
   }
   if(pillarConfidenceEl) pillarConfidenceEl.textContent=`${p.dataFilled}/9 categories`;
-  renderBenchmarkTable(h);
+  renderPillarChecklist(h);
 }
 
 form.addEventListener('submit',e => {
@@ -576,13 +577,65 @@ form.addEventListener('submit',e => {
     if(i>=0) horses[i]={...horses[i],...h,updated: Date.now()};
   }
   saveHorses(horses);
+  clearDraft();
   alert(`Saved: ${h.name}`);
   form.reset();
   form.elements.id.value='';
+  form.querySelectorAll('input[type="range"]').forEach(r => {
+    delete r.dataset.touched;
+    if(r.nextElementSibling) r.nextElementSibling.textContent='—';
+  });
   updateLiveScore();
   renderList();
   switchView('list');
 });
+
+// ---------- Auto-save draft (so a first-time buyer never loses work) ----------
+const DRAFT_KEY='horse-draft';
+let draftTimer=null;
+
+function saveDraft() {
+  // Only auto-save the "new horse" flow — never shadow an existing saved record.
+  if(form.elements.id&&form.elements.id.value) return;
+  const h=readForm();
+  // Ignore an essentially-empty form (readForm always returns the 6 zeroed flags).
+  const meaningful=Object.keys(h).some(k => !/^flag/.test(k)&&h[k]!==''&&h[k]!=null);
+  if(!meaningful) {clearDraft(); return;}
+  try {localStorage.setItem(DRAFT_KEY,JSON.stringify(h));} catch {}
+}
+function scheduleDraftSave() {
+  clearTimeout(draftTimer);
+  draftTimer=setTimeout(saveDraft,500);
+}
+function clearDraft() {
+  clearTimeout(draftTimer);
+  try {localStorage.removeItem(DRAFT_KEY);} catch {}
+}
+function loadDraft() {
+  try {return JSON.parse(localStorage.getItem(DRAFT_KEY));} catch {return null;}
+}
+
+// Offer to restore an unsaved draft on load — never auto-fill without consent.
+(function initDraftRestore() {
+  const banner=document.getElementById('draftBanner');
+  if(!banner) return;
+  const draft=loadDraft();
+  if(!draft||!draft.name) {banner.classList.add('hidden'); return;}
+  const label=document.getElementById('draftBannerName');
+  if(label) label.textContent=draft.name;
+  banner.classList.remove('hidden');
+  document.getElementById('btnRestoreDraft').addEventListener('click',() => {
+    fillForm(draft);
+    form.elements.id.value=''; // still a new, unsaved entry
+    updateLiveScore();
+    banner.classList.add('hidden');
+    document.getElementById('horseForm').scrollIntoView({behavior: 'smooth',block: 'start'});
+  });
+  document.getElementById('btnDiscardDraft').addEventListener('click',() => {
+    clearDraft();
+    banner.classList.add('hidden');
+  });
+})();
 
 document.getElementById('btnReset').addEventListener('click',() => {
   form.reset();
@@ -593,8 +646,8 @@ document.getElementById('btnReset').addEventListener('click',() => {
   });
   form.querySelectorAll('input[type="checkbox"]').forEach(cb => {cb.checked=false;});
   updatePhotoPreview('');
+  clearDraft();
   updateLiveScore();
-  renderBenchmarkTable(readForm());
 });
 
 document.getElementById('btnQuickSave').addEventListener('click',() => {
@@ -750,67 +803,135 @@ window.deleteHorse=function(id) {
   renderList();
 };
 
-function benchmarkFilterMatch(h,filter) {
-  if(filter==='all') return true;
-  const valueBuy=h.aReserve!=null&&h.pEarnings!=null&&h.aReserve>0&&(h.pEarnings/h.aReserve)>=8;
-  if(filter==='value') return valueBuy;
-  if(filter==='elite') return (h.pClass||0)>=5||(h.pWins||0)>=10;
-  return true;
+// ---------- Guided read: the 5-pillar teaching checklist ----------
+// Each pillar explains WHAT to look at and WHY, shows your current read, and — most
+// importantly for a first-time buyer — flags which key fields you still need to assess it.
+const PILLAR_TEACH=[
+  {key: 'pillarGenetics',label: 'Genetics & Pedigree',icon: '🧬',
+    why: 'Who the sire and dam are, and what the family has already produced. The single best clue you have on a young horse — but on its own still a weak predictor, so weigh it, don’t worship it.',
+    look: 'Look for a productive dam (winners & black-type), a proven sire, and black-type close up in the first 2–3 generations.',
+    fields: [['sire','sire'],['sireAEI','sire AEI'],['dam','dam'],['damWinners','dam’s winners'],['blackType3','black-type in family'],['nick','nick rating']]},
+  {key: 'pillarSoundness',label: 'Physical Soundness',icon: '🦴',
+    why: 'The frame, the walk, and the vet’s repository read. This is the pillar that can end a purchase — a serious x-ray finding is a HARD STOP. It needs your own eyes and your own vet.',
+    look: 'Look for a free, athletic walk, a balanced frame, and a clean or only-minor vet repository. You must see the horse in person for this.',
+    fields: [['cImpression','conformation impression'],['cWalk','walk quality'],['vRepository','vet repository read']]},
+  {key: 'pillarPerformance',label: 'Performance',icon: '🏁',
+    why: 'What the horse has actually done on the track — races, wins, earnings, speed figures, class. Blank for an unraced yearling, and that’s completely normal.',
+    look: 'Look for wins and places relative to starts, a strong best speed figure (Beyer/Timeform), and the highest class of race won.',
+    fields: [['pStarts','starts'],['pWins','wins'],['pEarnings','earnings'],['pClass','highest class']]},
+  {key: 'pillarValue',label: 'Price & Value',icon: '⚖️',
+    why: 'Is the price sane for this kind of horse? A great horse at a crazy price can be a worse buy than a solid one at a fair price. (Heads-up: the built-in ratio favours cheaper horses — sanity-check it against real sale prices.)',
+    look: 'Look for a reserve that lines up with what similar pedigrees are making at this sale, and a reputable consignor.',
+    fields: [['aReserve','reserve / price'],['aMarketEst','your market estimate'],['aConsignor','consignor reputation']]},
+  {key: 'pillarMind',label: 'Mind & Trainability',icon: '🧠',
+    why: 'Temperament and, for youngsters, an early foaling date (a February foal has a head start on a May one). A professional, focused attitude lowers training cost and injury risk.',
+    look: 'Look for a bold but trainable attitude on the shank, and — for 2yo prospects — an early-in-the-year foaling date.',
+    fields: [['temperament','temperament'],['foalDate','foaling date']]}
+];
+
+function pillarRead(score) {
+  if(score==null) return {label: 'Not yet assessed',cls: 'na'};
+  if(score>=75) return {label: 'Strong on paper',cls: 'strong'};
+  if(score>=60) return {label: 'Solid',cls: 'solid'};
+  if(score>=45) return {label: 'Mixed',cls: 'mixed'};
+  return {label: 'Thin / weak',cls: 'weak'};
 }
 
-function renderBenchmarkTable(currentHorse) {
-  const out=document.getElementById('benchmarkTable');
-  const filterEl=document.getElementById('benchmarkFilter');
-  if(!out||typeof HORSE_PRESETS==='undefined') return;
+function fieldFilled(h,name) {
+  const v=h? h[name]:null;
+  return v!=null&&v!=='';
+}
 
-  const filter=(filterEl&&filterEl.value)||'all';
-  const mode=currentMode();
+function renderPillarChecklist(currentHorse) {
+  const el=document.getElementById('pillarChecklist');
+  if(!el) return;
+  const h=currentHorse||{};
+  const p=computeFivePillars(h,currentMode());
+  el.innerHTML=PILLAR_TEACH.map(t => {
+    const score=p.pillars[t.key];
+    const read=pillarRead(score);
+    const missing=t.fields.filter(([n]) => !fieldFilled(h,n));
+    const filledCount=t.fields.length-missing.length;
+    const limited=score!=null&&filledCount<=1;
+    const pct=score==null? 0:Math.round(score);
+    const missTxt=missing.length
+      ? `<div class="pc-missing">Add to assess: ${missing.slice(0,3).map(([,l]) => `<span>${l}</span>`).join('')}</div>`
+      :`<div class="pc-missing pc-complete">✓ key fields entered</div>`;
+    return `<div class="pc-row pc-${read.cls}">
+      <div class="pc-icon" aria-hidden="true">${t.icon}</div>
+      <div class="pc-main">
+        <div class="pc-top">
+          <span class="pc-name">${t.label}</span>
+          <span class="pc-read">${read.label}${limited? ' · limited data':''}</span>
+        </div>
+        <div class="pc-bar" role="img" aria-label="${read.label}"><div class="pc-fill" style="width:${pct}%"></div></div>
+        <p class="pc-why">${t.why}</p>
+        <p class="pc-look">${t.look}</p>
+        ${missTxt}
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  const rows=HORSE_PRESETS
-    .filter(h => benchmarkFilterMatch(h,filter))
-    .map(h => {
-      const p=computeFivePillars(h,mode,currentScoreMode());
-      return {name: h.name,p};
-    })
-    .filter(x => x.p.score!=null)
-    .sort((a,b) => b.p.score-a.p.score)
-    .slice(0,8);
+// ---------- Learn from the legends (presets as an education tool, NOT a leaderboard) ----------
+function legendInsights(pr) {
+  const out=[];
+  const money=n => '$'+Math.round(n).toLocaleString('en-US');
+  if(pr.pStarts) {
+    let t=`Raced ${pr.pStarts} times for ${pr.pWins||0} win${pr.pWins===1? '':'s'}`;
+    if(pr.pPlaces) t+=` and ${pr.pPlaces} placing${pr.pPlaces===1? '':'s'}`;
+    if(pr.pWins===pr.pStarts&&pr.pStarts>0) t+=' — undefeated';
+    if(pr.pEarnings) t+=`, earning ${money(pr.pEarnings)}`;
+    out.push({p: 'Performance',t: t+'.'});
+    if(pr.pSpeed) {
+      const q=pr.pSpeed>=118? 'among the highest ever recorded':pr.pSpeed>=105? 'a genuine Grade 1 level':'a solid figure';
+      out.push({p: 'Performance',t: `Best speed figure (Beyer) of ${pr.pSpeed} — ${q}.`});
+    }
+  }
+  if(pr.sire||pr.dam) {
+    let t=`By ${pr.sire||'—'} out of ${pr.dam||'—'}${pr.damsire? ` (damsire ${pr.damsire})`:''}.`;
+    if(pr.blackType3>=3) t+=' A Group/Grade 1 family — stakes-class relatives right up close.';
+    else if(pr.blackType3===2) t+=' Multiple black-type relatives in the family.';
+    out.push({p: 'Genetics',t});
+  }
+  if(pr.aReserve) {
+    let t=`Bought for ${money(pr.aReserve)} as a young horse`;
+    if(pr.aReserve<=60000) t+=' — a famous bargain, and proof that price and class don’t always match';
+    out.push({p: 'Price & Value',t: t+'.'});
+  } else if(pr.bStudFee) {
+    out.push({p: 'Price & Value',t: `Now commands a stud fee around ${money(pr.bStudFee)} — the market’s verdict on a proven sire.`});
+  }
+  return out;
+}
 
-  const current=currentHorse&&Object.keys(currentHorse).length
-    ? {name: currentHorse.name||'Current horse',p: computeFivePillars(currentHorse,mode,currentScoreMode())}
-    :null;
-
-  const tr=(name,p,cls='') => `<tr class="${cls}">
-      <td>${escapeHtml(name)}</td>
-      <td>${toRange10(p.pillars.pillarGenetics)?.toFixed(1)??'—'}</td>
-      <td>${toRange10(p.pillars.pillarSoundness)?.toFixed(1)??'—'}</td>
-      <td>${toRange10(p.pillars.pillarPerformance)?.toFixed(1)??'—'}</td>
-      <td>${toRange10(p.pillars.pillarValue)?.toFixed(1)??'—'}</td>
-      <td>${toRange10(p.pillars.pillarMind)?.toFixed(1)??'—'}</td>
-      <td>${p.score==null? '—':p.score}</td>
-      <td>${p.decision.text}</td>
-      <td>${p.dataFilled}/9</td>
-    </tr>`;
-
-  out.innerHTML=`<table>
-    <thead>
-      <tr>
-        <th>Horse</th>
-        <th>Genetics</th>
-        <th>Soundness</th>
-        <th>Performance</th>
-        <th>Value</th>
-        <th>Mind</th>
-        <th>Score</th>
-        <th>Decision</th>
-        <th>Data</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${current? tr(current.name,current.p,'current-row'):''}
-      ${rows.map(r => tr(r.name,r.p)).join('')}
-    </tbody>
-  </table>`;
+function renderLegendsPanel() {
+  const sel=document.getElementById('legendSelect');
+  const panel=document.getElementById('legendPanel');
+  if(!sel||!panel||typeof HORSE_PRESETS==='undefined') return;
+  const idx=parseInt(sel.value,10);
+  const pr=isNaN(idx)? null:HORSE_PRESETS[idx];
+  if(!pr) {
+    panel.innerHTML='<p class="hint">Pick a legend above to see what makes an elite page — and why.</p>';
+    return;
+  }
+  const insights=legendInsights(pr);
+  const safePhoto=pr.photoUrl&&/^https?:\/\//i.test(pr.photoUrl)? pr.photoUrl:null;
+  panel.innerHTML=`
+    <div class="legend-card">
+      ${safePhoto
+        ? `<img class="legend-photo" src="${escapeHtml(safePhoto)}" alt="${escapeHtml(pr.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
+        :'<div class="legend-photo legend-photo-ph">🐎</div>'}
+      <div class="legend-body">
+        <h4>${escapeHtml(pr.name)} <span class="hint">${escapeHtml(pr.country||'')}${pr.foalDate? ' · '+String(pr.foalDate).slice(0,4):''}</span></h4>
+        ${pr.notes? `<p class="legend-note">${escapeHtml(pr.notes)}</p>`:''}
+        <ul class="legend-insights">
+          ${insights.map(i => `<li><span class="li-tag">${escapeHtml(i.p)}</span><span>${escapeHtml(i.t)}</span></li>`).join('')}
+        </ul>
+        <p class="legend-foot">This is what an <strong>elite</strong> page looks like — a benchmark to learn from,
+          not a bar your prospect has to clear. Most good, sound, sensibly-priced horses score nowhere near this,
+          and that’s completely normal.</p>
+      </div>
+    </div>`;
 }
 
 // ---------- Compare view ----------
@@ -1074,15 +1195,45 @@ function openWeights() {
   });
 })();
 
+// ---------- Glossary modal (plain-language jargon buster for first-time buyers) ----------
+(function initGlossary() {
+  const modal=document.getElementById('glossaryModal');
+  const open=document.getElementById('btnGlossary');
+  const close=document.getElementById('btnCloseGlossary');
+  if(!modal||!open) return;
+  open.addEventListener('click',() => modal.classList.remove('hidden'));
+  if(close) close.addEventListener('click',() => modal.classList.add('hidden'));
+  modal.addEventListener('click',e => {if(e.target===modal) modal.classList.add('hidden');});
+  document.addEventListener('keydown',e => {if(e.key==='Escape') modal.classList.add('hidden');});
+})();
+
 // ---------- Init ----------
 document.getElementById('countSaved').textContent=loadHorses().length;
 // Don't call updateLiveScore() here — only call it after user loads/enters data
 // This prevents default pillar values from showing before any horse is selected
 
-const benchmarkFilter=document.getElementById('benchmarkFilter');
-if(benchmarkFilter) {
-  benchmarkFilter.addEventListener('change',() => renderBenchmarkTable(readForm()));
-}
+// Populate the "Learn from the legends" selector and wire it up.
+(function initLegends() {
+  const sel=document.getElementById('legendSelect');
+  if(!sel||typeof HORSE_PRESETS==='undefined') return;
+  HORSE_PRESETS
+    .map((p,i) => ({p,i}))
+    .sort((a,b) => a.p.name.localeCompare(b.p.name))
+    .forEach(({p,i}) => {
+      const opt=document.createElement('option');
+      opt.value=i;
+      opt.textContent=`${p.name}  (${p.country||'?'}, ${(p.foalDate||'').slice(0,4)})`;
+      sel.appendChild(opt);
+    });
+  // Default to an iconic, instructive example (Frankel — undefeated, highest-rated ever).
+  const frankel=HORSE_PRESETS.findIndex(p => p.name==='Frankel');
+  if(frankel>=0) sel.value=String(frankel);
+  sel.addEventListener('change',renderLegendsPanel);
+  renderLegendsPanel();
+})();
+
+// Initial guided-read checklist (empty state).
+renderPillarChecklist({});
 
 // ---------- Preset loader ----------
 (function initPresets() {
@@ -1109,7 +1260,6 @@ if(benchmarkFilter) {
     updateLiveScore();
     // Scroll to top of form
     document.getElementById('horseForm').scrollIntoView({behavior: 'smooth',block: 'start'});
-    renderBenchmarkTable(readForm());
   });
 
   // "Enter your own horse" — clear form and scroll to identity entry
@@ -1124,8 +1274,8 @@ if(benchmarkFilter) {
       });
       form.querySelectorAll('input[type="checkbox"]').forEach(cb => {cb.checked=false;});
       updatePhotoPreview('');
+      clearDraft();
       updateLiveScore();
-      renderBenchmarkTable({});
       // Scroll to form and focus on name field
       document.getElementById('horseForm').scrollIntoView({behavior: 'smooth',block: 'start'});
       setTimeout(() => {
@@ -1134,8 +1284,6 @@ if(benchmarkFilter) {
       },300);
     });
   }
-
-  renderBenchmarkTable(readForm());
 })();
 
 // ---------- Click-popover for info buttons ----------

@@ -75,6 +75,10 @@ Northern Hemisphere thoroughbreds all share a universal January 1 birthday. Janu
 
 | Feature | Details |
 |---|---|
+| **Guided read** | The 5 pillars render as a live teaching checklist — *what to look at, why it matters, your current read,* and *which fields you still need* to assess each pillar. The single score is deliberately secondary. |
+| **Learn from the legends** | Pick a legendary horse (Frankel, Secretariat, Winx…) and see a plain-language breakdown of *why* their page is elite — a benchmark to learn from, not a bar your prospect must clear. |
+| **Plain-language glossary** | A built-in jargon buster (AEI, black-type, nick, repository, scope grade, pinhook…) written for first-time buyers. |
+| **Auto-save draft** | Your in-progress horse is saved as you type and offered back on your next visit, so you never lose work. |
 | **Real Horse Presets** | Load verified public-record data for 23 famous horses (Secretariat, Frankel, American Pharoah, Winx, etc.) with one click |
 | **Live Scoring** | Score updates in real time as you fill the form |
 | **Saved Horses** | All entries persist in browser localStorage — no account needed |
