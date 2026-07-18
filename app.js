@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.9.0'; // bump this each release to trigger update prompt
+const APP_VERSION='1.10.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -72,6 +72,21 @@ const num=(v) => {
 };
 const fmtUSD=(n) => n==null? '—':
   '$'+Math.round(n).toLocaleString('en-US');
+
+// Non-blocking toast (also announced to screen readers via the aria-live host).
+function toast(msg,type,ms) {
+  const host=document.getElementById('toastHost');
+  if(!host) {return;}
+  const el=document.createElement('div');
+  el.className='toast toast-'+(type||'success');
+  el.textContent=msg;
+  host.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(),300);
+  },ms||2800);
+}
 
 // Map a numeric metric onto 0-100 score given target range
 function rangeScore(value,lo,hi,ideal) {
@@ -559,7 +574,12 @@ function updateLiveScore() {
 form.addEventListener('submit',e => {
   e.preventDefault();
   const h=readForm();
-  if(!h.name) {alert('Name is required'); return;}
+  if(!h.name) {
+    toast('Give the horse a name first','error');
+    const nameField=form.elements.namedItem('name');
+    if(nameField) nameField.focus();
+    return;
+  }
   const horses=loadHorses();
   // Check for duplicate: if no id yet (new entry), warn if name already exists
   if(!h.id) {
@@ -582,7 +602,7 @@ form.addEventListener('submit',e => {
   }
   saveHorses(horses);
   clearDraft();
-  alert(`Saved: ${h.name}`);
+  toast(`Saved: ${h.name}`);
   form.reset();
   form.elements.id.value='';
   form.querySelectorAll('input[type="range"]').forEach(r => {
@@ -766,7 +786,7 @@ function renderList() {
           </div>
           <div class="ped"><em>By</em> ${escapeHtml(ped)}</div>
           ${p.score==null? '':`<div class="meta">5-pillar: <strong>${p.score}</strong> · ${p.decision.text} · ${p.dataFilled}/9 data</div>`}
-          ${h.aReserve? `<div class="price">${fmtUSD(h.aReserve)}${vs? ` · value ${vs}`:''}${ps.band? ` <span class="ps-chip ${ps.band.cls}">${ps.band.label}</span>`:''}</div>`:''}
+          ${h.aReserve? `<div class="price">${fmtUSD(h.aReserve)}${ps.band? ` <span class="ps-chip ${ps.band.cls}">${ps.band.label}</span>`:''}</div>`:''}
           <div class="breakdown">${breakdown}</div>
           <div class="actions">
             <button class="btn" onclick="editHorse('${h.id}')">✏ Edit</button>
@@ -1311,6 +1331,7 @@ document.getElementById('btnExportJSON').addEventListener('click',() => {
     localStorage.setItem('lastBackupCount',String(horses.length));
   } catch {}
   updateBackupStatus();
+  toast(`Backup downloaded — ${horses.length} horse${horses.length===1? '':'s'}`);
 });
 
 function updateBackupStatus() {
@@ -1335,7 +1356,7 @@ function updateBackupStatus() {
 
 document.getElementById('btnExportCSV').addEventListener('click',() => {
   const horses=loadHorses();
-  if(!horses.length) return alert('No horses to export.');
+  if(!horses.length) {toast('No horses to export yet','info'); return;}
   const mode=currentMode();
   // Collect all keys plus computed scores
   const keys=[...new Set(horses.flatMap(h => Object.keys(h)))];
@@ -1379,9 +1400,9 @@ document.getElementById('importFile').addEventListener('change',e => {
       if(!confirm(`Import ${data.length} horses? This replaces current data.`)) return;
       saveHorses(data);
       renderList();
-      alert('Imported successfully.');
+      toast(`Imported ${data.length} horse${data.length===1? '':'s'}`);
     } catch(err) {
-      alert('Import failed: '+err.message);
+      toast('Import failed: '+err.message,'error',4000);
     }
   };
   reader.readAsText(f);
