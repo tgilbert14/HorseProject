@@ -3,7 +3,7 @@
              localStorage key 'weights:<mode>' (object)
 */
 
-const APP_VERSION='1.7.0'; // bump this each release to trigger update prompt
+const APP_VERSION='1.8.0'; // bump this each release to trigger update prompt
 
 const STORAGE_KEY='horses';
 const WEIGHTS_KEY=(m) => `weights:${m}`;
@@ -672,6 +672,7 @@ function switchView(name) {
     v.classList.toggle('active',v.id==='view-'+name));
   if(name==='list') renderList();
   if(name==='compare') renderCompare();
+  if(name==='data') updateBackupStatus();
 }
 
 // ---------- Mode ----------
@@ -746,8 +747,8 @@ function renderList() {
     const safePhoto=h.photoUrl&&/^https?:\/\//i.test(h.photoUrl)? h.photoUrl:null;
     const photoHtml=safePhoto
       ? `<img class="horse-card-photo" src="${escapeHtml(safePhoto)}" alt="${escapeHtml(h.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
-      +`<div class="horse-card-photo-placeholder" style="display:none">🐎</div>`
-      :`<div class="horse-card-photo-placeholder">🐎</div>`;
+      +coatPlaceholder('horse-card-photo-placeholder',h.color,h.name,true)
+      :coatPlaceholder('horse-card-photo-placeholder',h.color,h.name,false);
     return `
       <div class="horse-card" data-id="${h.id}">
         ${photoHtml}
@@ -766,6 +767,7 @@ function renderList() {
           <div class="breakdown">${breakdown}</div>
           <div class="actions">
             <button class="btn" onclick="editHorse('${h.id}')">✏ Edit</button>
+            <button class="btn" onclick="openReport('${h.id}')">📋 Report</button>
             <button class="btn" onclick="duplicateHorse('${h.id}')">⧉ Duplicate</button>
             <button class="btn danger" onclick="deleteHorse('${h.id}')">🗑</button>
           </div>
@@ -777,6 +779,26 @@ function renderList() {
 function escapeHtml(s) {
   return String(s??'').replace(/[&<>"']/g,c =>
     ({'&': '&amp;','<': '&lt;','>': '&gt;','"': '&quot;',"'": '&#39;'}[c]));
+}
+
+// Coat-coloured placeholder so a missing/offline photo looks intentional (not a broken image).
+function coatHex(color) {
+  const c=String(color||'').toLowerCase();
+  if(c.includes('chestnut')) return '#8a4b2a';
+  if(c.includes('grey')||c.includes('gray')||c.includes('roan')) return '#7f8489';
+  if(c.includes('dark bay')||c.includes('brown')) return '#3c2a1e';
+  if(c.includes('bay')) return '#6b3f1d';
+  if(c.includes('black')) return '#2b2723';
+  return '#4a463f';
+}
+function horseInitials(name) {
+  const s=String(name||'').trim();
+  if(!s) return '🐎';
+  return s.split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase()||'🐎';
+}
+function coatPlaceholder(cls,color,name,hidden) {
+  return `<div class="${cls}" style="${hidden? 'display:none;':''}background:linear-gradient(135deg, ${coatHex(color)}, #171717)">`
+    +`<span class="ph-initials">${escapeHtml(horseInitials(name))}</span></div>`;
 }
 
 document.getElementById('search').addEventListener('input',renderList);
@@ -804,6 +826,132 @@ window.deleteHorse=function(id) {
   saveHorses(loadHorses().filter(x => x.id!==id));
   renderList();
 };
+
+// ---------- Due-diligence report (the shareable "bring this to your agent/vet" sheet) ----------
+function redFlags(h) {
+  const flags=[];
+  if(h.vRepository===0||h.vXrays===0)
+    flags.push({level: 'stop',text: 'HARD STOP — significant veterinary repository finding. Do not proceed without a clear explanation from your own vet.'});
+  const map={
+    flagWind: 'Wind / breathing noise',
+    flagThroat: 'Throat grade III–IV (laryngeal)',
+    flagOCD: 'OCD / chips on x-rays',
+    flagHeart: 'Heart murmur / cardio concern',
+    flagSoundness: 'Recurring soundness issue',
+    flagBehavior: 'Behaviour / mind concern'
+  };
+  Object.keys(map).forEach(k => {if(h[k]) flags.push({level: 'warn',text: map[k]});});
+  return flags;
+}
+
+const DUE_DILIGENCE=[
+  'Watch the horse walk in person — is it free, athletic and over-stepping?',
+  'Have YOUR OWN vet review the sale repository x-rays and throat scope',
+  'Read the pedigree page: the dam’s produce record and black-type proximity',
+  'Check the price against comparable sales for this sale and book',
+  'Set a hard maximum bid AND a walk-away number before the ring',
+  'Budget the all-in cost: vet, transport, insurance, and training',
+  'Ask the consignor about any surgeries, treatments, or vices'
+];
+
+function buildReport(h) {
+  const mode=currentMode();
+  const p=computeFivePillars(h,mode);
+  const ps=priceSanity(h);
+  const flags=redFlags(h);
+  const ped=[h.sire,h.dam,h.damsire].filter(Boolean).join(' × ')||'—';
+  const metaBits=[
+    h.sex&&escapeHtml(h.sex),
+    h.hip&&('Hip '+escapeHtml(h.hip)),
+    h.venue&&escapeHtml(h.venue),
+    h.foalDate&&('foaled '+escapeHtml(String(h.foalDate)))
+  ].filter(Boolean).join(' · ');
+
+  const pillarRows=PILLAR_TEACH.map(t => {
+    const score=p.pillars[t.key];
+    const read=pillarRead(score);
+    const missing=t.fields.filter(([n]) => !fieldFilled(h,n));
+    const pct=score==null? 0:Math.round(score);
+    return `<tr class="rp-pillar pc-${read.cls}">
+      <td class="rp-pname">${t.icon} ${t.label}</td>
+      <td class="rp-pread">${read.label}</td>
+      <td class="rp-pbarcell"><span class="rp-bar"><span class="rp-fill" style="width:${pct}%"></span></span></td>
+      <td class="rp-pmiss">${missing.length? 'Still to check: '+missing.map(([,l]) => escapeHtml(l)).join(', '):'✓ key fields entered'}</td>
+    </tr>`;
+  }).join('');
+
+  const flagsBlock=flags.length
+    ? `<div class="rp-flags"><h3>⚠ Red flags to resolve</h3><ul>${flags.map(f => `<li class="rp-flag-${f.level}">${escapeHtml(f.text)}</li>`).join('')}</ul></div>`
+    :`<div class="rp-noflags">No red flags recorded — but that only means none were <em>entered</em>. Confirm with an in-person inspection and your vet.</div>`;
+
+  let priceBlock='';
+  if(ps.bench) {
+    const band=ps.band;
+    priceBlock=`<div class="rp-section">
+      <h3>Price sanity</h3>
+      <p><strong>${escapeHtml(ps.bench.sale)}${ps.bench.book&&ps.bench.book!=='All books'? ' · '+escapeHtml(ps.bench.book):''}</strong>
+        (${escapeHtml(ps.bench.year)}) — median <strong>${fmtMoney(ps.bench.medianUSD)}</strong>, average ${fmtMoney(ps.bench.avgUSD)}.</p>
+      ${ps.price!=null&&band? `<p>Your price of <strong>${fmtMoney(ps.price)}</strong> is <strong class="pc-${band.cls} rp-band">${band.label}</strong> for this sale. ${escapeHtml(band.note)}</p>`
+        :'<p class="rp-muted">Enter a reserve to place it on this sale’s scale.</p>'}
+      <p class="rp-muted">This reflects the sale, not this individual — a standout is worth above the median; a plain one, below.</p>
+    </div>`;
+  }
+
+  return `<article class="report-doc">
+    <header class="rp-head">
+      <div class="rp-title"><span class="rp-logo">🐎</span>
+        <div><h2>${escapeHtml(h.name||'Unnamed horse')}</h2>
+        <p class="rp-sub">Due-diligence summary · <em>By</em> ${escapeHtml(ped)}</p></div></div>
+      <div class="rp-meta">${metaBits||'&nbsp;'}</div>
+    </header>
+
+    <div class="rp-read pc-${p.decision.cls==='decision-buy'? 'strong':p.decision.cls==='decision-pass'? 'weak':'mixed'}">
+      <div class="rp-score"><span class="rp-score-num">${p.score==null? '—':p.score}</span><span class="rp-score-cap">on-paper score / 100</span></div>
+      <div class="rp-read-txt"><strong>On-paper read: ${p.decision.text}</strong><br>
+        <span class="rp-muted">A structured roll-up of the ${p.dataFilled}/9 categories entered — not a prediction of racing success.</span></div>
+    </div>
+
+    ${flagsBlock}
+
+    <div class="rp-section">
+      <h3>The five pillars</h3>
+      <table class="rp-table">${pillarRows}</table>
+    </div>
+
+    ${priceBlock}
+
+    <div class="rp-section">
+      <h3>Before you bid — due-diligence checklist</h3>
+      <ul class="rp-checklist">${DUE_DILIGENCE.map(d => `<li>${escapeHtml(d)}</li>`).join('')}</ul>
+    </div>
+
+    ${h.notes? `<div class="rp-section"><h3>Notes</h3><p>${escapeHtml(h.notes)}</p></div>`:''}
+
+    <footer class="rp-foot">Generated by Horse Selector — a structured notebook for organising your judgement, not a
+      substitute for a bloodstock agent and veterinarian. Always inspect and vet in person before bidding.</footer>
+  </article>`;
+}
+
+window.openReport=function(id) {
+  const h=loadHorses().find(x => x.id===id);
+  if(!h) return;
+  const modal=document.getElementById('reportModal');
+  const content=document.getElementById('reportContent');
+  if(!modal||!content) return;
+  content.innerHTML=buildReport(h);
+  modal.classList.remove('hidden');
+};
+
+(function initReport() {
+  const modal=document.getElementById('reportModal');
+  if(!modal) return;
+  const close=document.getElementById('btnCloseReport');
+  const print=document.getElementById('btnPrintReport');
+  if(close) close.addEventListener('click',() => modal.classList.add('hidden'));
+  if(print) print.addEventListener('click',() => window.print());
+  modal.addEventListener('click',e => {if(e.target===modal) modal.classList.add('hidden');});
+  document.addEventListener('keydown',e => {if(e.key==='Escape') modal.classList.add('hidden');});
+})();
 
 // ---------- Guided read: the 5-pillar teaching checklist ----------
 // Each pillar explains WHAT to look at and WHY, shows your current read, and — most
@@ -921,8 +1069,9 @@ function renderLegendsPanel() {
   panel.innerHTML=`
     <div class="legend-card">
       ${safePhoto
-        ? `<img class="legend-photo" src="${escapeHtml(safePhoto)}" alt="${escapeHtml(pr.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">`
-        :'<div class="legend-photo legend-photo-ph">🐎</div>'}
+        ? `<img class="legend-photo" src="${escapeHtml(safePhoto)}" alt="${escapeHtml(pr.name)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          +coatPlaceholder('legend-photo legend-photo-ph',pr.color,pr.name,true)
+        :coatPlaceholder('legend-photo legend-photo-ph',pr.color,pr.name,false)}
       <div class="legend-body">
         <h4>${escapeHtml(pr.name)} <span class="hint">${escapeHtml(pr.country||'')}${pr.foalDate? ' · '+String(pr.foalDate).slice(0,4):''}</span></h4>
         ${pr.notes? `<p class="legend-note">${escapeHtml(pr.notes)}</p>`:''}
@@ -1107,9 +1256,35 @@ function renderCompareTable() {
 
 // ---------- Import / Export ----------
 document.getElementById('btnExportJSON').addEventListener('click',() => {
-  const data=JSON.stringify(loadHorses(),null,2);
+  const horses=loadHorses();
+  const data=JSON.stringify(horses,null,2);
   download('horses-backup.json',data,'application/json');
+  try {
+    localStorage.setItem('lastBackupAt',String(Date.now()));
+    localStorage.setItem('lastBackupCount',String(horses.length));
+  } catch {}
+  updateBackupStatus();
 });
+
+function updateBackupStatus() {
+  const el=document.getElementById('backupStatus');
+  if(!el) return;
+  const count=loadHorses().length;
+  const at=parseInt(localStorage.getItem('lastBackupAt')||'',10);
+  const backedCount=parseInt(localStorage.getItem('lastBackupCount')||'0',10);
+  if(!at||isNaN(at)) {
+    el.className='backup-status'+(count? ' backup-warn':'');
+    el.textContent=count? `⚠ You have ${count} horse${count===1? '':'s'} saved and no backup yet. Export a JSON backup now.`:'';
+    return;
+  }
+  const days=Math.floor((Date.now()-at)/86400000);
+  const when=days<=0? 'today':days===1? 'yesterday':`${days} days ago`;
+  const stale=count>backedCount||days>=14;
+  el.className='backup-status'+(stale? ' backup-warn':' backup-ok');
+  el.textContent=stale
+    ? `⚠ Last backup ${when} (${backedCount} horse${backedCount===1? '':'s'}); you now have ${count}. Export an up-to-date backup.`
+    :`✓ Last backup ${when} — ${backedCount} horse${backedCount===1? '':'s'} saved.`;
+}
 
 document.getElementById('btnExportCSV').addEventListener('click',() => {
   const horses=loadHorses();

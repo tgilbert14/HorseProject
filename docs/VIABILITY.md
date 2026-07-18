@@ -251,8 +251,9 @@ Cheap, unambiguous trust fixes that move the app toward "wantable" regardless of
   user's horse must clear (the old leaderboard that ranked a live horse next to Frankel is gone).
 - ✅ **Auto-save draft** so a first-time buyer never loses work; ✅ **plain-language glossary**
   (24 terms) for the jargon.
-- ⏳ *Remaining:* **bundle local preset images** (still hotlinked → offline rot), a deeper
-  required-field-reduction pass, and barn-side quick-capture optimizations.
+- ✅ **Offline-safe images:** failed/offline preset photos now fall back to tasteful
+  coat-coloured portrait placeholders (initials on the horse's coat colour) instead of a bare
+  emoji or a broken image. *(True bundling of licensed local image files remains a follow-up.)*
 
 ### Phase 2 — Trust & the one defensible feature
 - ✅ **Real price-sanity check — shipped.** A log-scale gauge + below/within/above bands
@@ -264,19 +265,24 @@ Cheap, unambiguous trust fixes that move the app toward "wantable" regardless of
   and native-currency support (guineas / EUR / AUD). The book-level data is the teaching
   payload: a $70k price is "typical" for Keeneland September overall but "well below typical"
   for Book 1. This is the single differentiator worth a thin data feed.
-- **Reposition genetics/soundness/performance from *recompute* to *ingest*:** "paste your
-  TrueNicks/eNicks grade, your Beyer/BRIS figure, your vet's repository read" — record what
-  your calibrated source told you, don't fake a worse version.
-- Add **durable storage** (optional account / cloud sync / export reminders) so a shortlist
-  survives a device change.
+- ✅ **Ingest, not recompute:** the pedigree and performance cards now tell the user to
+  *record what their calibrated provider says* — paste the AEI from equineline, the nick grade
+  from TrueNicks/eNicks, the Beyer from Brisnet/Equibase — framing the app as an organiser on
+  top of the paid data, not a rival to it.
+- ✅ **Durable storage (client-side):** an explicit *"your horses live only in this browser"*
+  warning, a JSON-backup timestamp indicator, and a nudge when your data is newer than your
+  last backup. *(A true cloud account / cross-device sync needs a backend and is out of scope
+  for the static PWA — see Phase 3.)*
 
 ### Phase 3 — Distribution & (modest) monetization
-- Distribution through the **one growing channel**: partner with / embed in
-  syndicate & micro-ownership platforms and first-owner education funnels (organic discovery
-  of a free niche PWA is near-zero).
-- Monetize **confidence, not prediction**: a shareable **"bring this to your agent/vet"**
-  due-diligence report; guided vetting of a *specific proposed syndicate share*; price
-  benchmarking. Frame every paid step as *"avoid a five-figure mistake,"* never *"win with
+- ✅ **The shareable "bring this to your agent/vet" report — shipped.** One click generates a
+  clean, printable due-diligence summary (on-paper read, five pillars, red flags, price sanity,
+  and a pre-bid checklist) — the confidence artifact the monetization thesis rests on.
+- ⏳ Distribution through the **one growing channel**: partner with / embed in syndicate &
+  micro-ownership platforms and first-owner education funnels (organic discovery of a free niche
+  PWA is near-zero). *(Go-to-market, not code.)*
+- ⏳ Optional cloud account / cross-device sync + guided vetting of a *specific proposed
+  syndicate share*. Frame every paid step as *"avoid a five-figure mistake,"* never *"win with
   our algorithm."*
 
 ---

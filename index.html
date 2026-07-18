@@ -200,6 +200,9 @@
         <!-- PEDIGREE -->
         <div class="card">
           <h2>Pedigree <span class="hint">most predictive single factor</span></h2>
+          <p class="provider-tip">📥 <strong>Record what your data provider tells you.</strong> Paste the sire AEI from
+            an <em>equineline</em> report and the nick rating from your <em>TrueNicks</em> / <em>eNicks</em> report —
+            those are calibrated against real results. This app organises those numbers, it doesn't replace them.</p>
           <div class="grid">
             <label>Sire <input name="sire" /></label>
             <label>Sire stud fee (USD) <input type="number" name="sireFee" min="0" step="500" /></label>
@@ -247,6 +250,8 @@
         <!-- PERFORMANCE -->
         <div class="card">
           <h2>Performance <span class="hint">leave blank for unraced yearlings</span></h2>
+          <p class="provider-tip">📥 Copy the record and speed figures straight from <em>Brisnet</em>, <em>Equibase</em>
+            or <em>Racing Post</em> — the Beyer/Timeform figure is empirically derived, so record it, don't re-guess it.</p>
           <div class="grid">
             <label>Starts <input type="number" name="pStarts" min="0" /></label>
             <label>Wins <input type="number" name="pWins" min="0" /></label>
@@ -520,10 +525,14 @@
     <!-- ============== DATA VIEW ============== -->
     <section id="view-data" class="view">
       <div class="card">
-        <h2>Export</h2>
+        <h2>Export &amp; backup</h2>
+        <p class="data-safety">⚠️ <strong>Your horses live only in this browser</strong> (nothing is sent to a server).
+          Clearing browser data, switching devices, or a lost phone will erase them. Export a JSON backup regularly —
+          it's the only copy you control.</p>
         <p>Download all saved horses as CSV (spreadsheet-ready) or JSON (full backup).</p>
+        <button class="btn primary" id="btnExportJSON">⬇ Export JSON backup</button>
         <button class="btn" id="btnExportCSV">⬇ Export CSV</button>
-        <button class="btn" id="btnExportJSON">⬇ Export JSON</button>
+        <div id="backupStatus" class="backup-status"></div>
       </div>
       <div class="card">
         <h2>Import</h2>
@@ -762,6 +771,10 @@
             matters, your current read, and which fields you still need</li>
           <li><strong>Learn from the legends</strong> — See why an elite horse's page is elite, in plain language</li>
           <li><strong>Plain-language glossary</strong> — Every bit of jargon on the form, explained for first-timers</li>
+          <li><strong>Due-diligence report</strong> — One-click printable "bring this to your agent &amp; vet" summary
+            (read, pillars, red flags, price check, pre-bid checklist)</li>
+          <li><strong>Price sanity check</strong> — Compares your reserve to a sale's real published median (13
+            sales/books)</li>
           <li><strong>Auto-save draft</strong> — Your in-progress horse is saved as you type and offered back next
             visit</li>
           <li><strong>Real Horse Presets</strong> — Load verified public-record data for 23 famous horses (Secretariat,
@@ -906,6 +919,20 @@
             about the sale, not a verdict on the individual horse.</dd>
         </dl>
       </div>
+    </div>
+  </div>
+
+  <!-- DUE-DILIGENCE REPORT MODAL -->
+  <div id="reportModal" class="modal hidden">
+    <div class="modal-body report-modal-body">
+      <div class="report-toolbar no-print">
+        <span class="report-toolbar-title">📋 Due-diligence report</span>
+        <div class="report-toolbar-actions">
+          <button class="btn primary" id="btnPrintReport">🖨 Print / Save as PDF</button>
+          <button class="btn ghost" id="btnCloseReport">✕ Close</button>
+        </div>
+      </div>
+      <div id="reportContent"></div>
     </div>
   </div>
 
