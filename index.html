@@ -66,39 +66,51 @@
           Conformation, vet, and temperament are blank by default — only fill those in when you've
           actually inspected the horse. Anything left blank is treated as <em>unknown</em>, not "clean".
         </p>
-        <div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
-          <strong>OR</strong> <button type="button" class="btn ghost" id="btnEnterOwnHorse">Enter your own horse to
-            evaluate</button>
+        <div class="preset-actions">
+          <span><strong>OR</strong> <button type="button" class="btn ghost" id="btnEnterOwnHorse">Enter your own horse
+              to evaluate</button></span>
+          <button type="button" class="btn ghost glossary-btn" id="btnGlossary">📖 New to this? Glossary of
+            terms</button>
         </div>
+      </div>
+
+      <!-- Unsaved-draft restore banner -->
+      <div id="draftBanner" class="draft-banner hidden">
+        <span>💾 You have an unsaved horse from last time<span id="draftBannerName" class="draft-name"></span>.</span>
+        <button type="button" class="btn primary" id="btnRestoreDraft">Restore it</button>
+        <button type="button" class="btn ghost" id="btnDiscardDraft">Discard</button>
       </div>
 
       <form id="horseForm" autocomplete="off">
 
-        <!-- HERO: 5-Pillar Decision -->
+        <!-- HERO: guided read (a teaching checklist, not a verdict) -->
         <div class="card hero-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h2 style="margin: 0;">Decision <span class="hint">live — updates as you fill the form</span></h2>
+          <div class="hero-head">
+            <h2 style="margin: 0;">Your guided read <span class="hint">live — a checklist, not a verdict</span></h2>
             <button type="button" class="btn" id="btnSaveFromHero">💾 Save horse</button>
           </div>
-          <div class="pillar-summary">
-            <span>5-Pillar Score: <strong id="pillarScore">—</strong> / 100</span>
-            <span>Decision: <strong id="pillarDecision" class="decision decision-wait">Needs more data</strong></span>
-            <span>Confidence: <strong id="pillarConfidence">—</strong></span>
+
+          <div class="read-strip">
+            <div class="read-score">
+              <span class="read-score-num" id="pillarScore">—</span>
+              <span class="read-score-cap">on-paper score<br>/ 100 · from your inputs</span>
+            </div>
+            <div class="read-meta">
+              <span class="read-line">On-paper read: <strong id="pillarDecision"
+                  class="decision decision-wait">Needs more data</strong></span>
+              <span class="read-line">Data filled: <strong id="pillarConfidence">—</strong> <button type="button"
+                  class="info"
+                  data-info="How many of the 9 categories you've entered data for — a measure of how complete YOUR inputs are, not a probability of racing success.">ⓘ</button></span>
+            </div>
           </div>
           <p class="hint hero-hint">
-            Confidence rises as you add real data. A low-confidence BUY is just a hypothesis —
-            don't bid on it without inspection &amp; vet review.
+            This is a structured roll-up of <em>the data you entered</em> — not a prediction of racing success.
+            Even the strongest signals at the yearling stage explain only a small share of how a horse turns out.
+            Use the checklist below to see <em>what to look at, why, and where you still need to dig</em>. Never bid
+            without in-person inspection and an independent vet review.
           </p>
 
-          <div class="benchmark-head">
-            <h3>Compare to historical benchmarks</h3>
-            <select id="benchmarkFilter">
-              <option value="all">All presets</option>
-              <option value="elite">Elite champions</option>
-              <option value="value">Value-buys</option>
-            </select>
-          </div>
-          <div id="benchmarkTable"></div>
+          <div id="pillarChecklist" class="pillar-checklist"></div>
 
           <details class="pillar-guide">
             <summary>What the 5 pillars mean (1–10 rubric)</summary>
@@ -142,12 +154,22 @@
           </details>
         </div>
 
+        <!-- LEARN FROM THE LEGENDS (education, not a leaderboard) -->
+        <div class="card legends-card">
+          <div class="legends-head">
+            <h2 style="margin:0;">Learn from the legends <span class="hint">what an elite page looks like — and
+                why</span></h2>
+            <select id="legendSelect" aria-label="Choose a legendary horse to learn from"></select>
+          </div>
+          <div id="legendPanel"></div>
+        </div>
+
         <!-- IDENTITY -->
         <div class="card">
           <h2>Identity</h2>
           <div class="identity-row">
             <div class="photo-preview-wrap">
-              <img id="photoPreview" class="photo-preview" alt="" />
+              <img id="photoPreview" class="photo-preview" alt="" referrerpolicy="no-referrer" />
               <div id="photoPlaceholder" class="photo-preview-placeholder">🐎</div>
             </div>
             <div class="identity-fields grid">
@@ -178,6 +200,9 @@
         <!-- PEDIGREE -->
         <div class="card">
           <h2>Pedigree <span class="hint">most predictive single factor</span></h2>
+          <p class="provider-tip">📥 <strong>Record what your data provider tells you.</strong> Paste the sire AEI from
+            an <em>equineline</em> report and the nick rating from your <em>TrueNicks</em> / <em>eNicks</em> report —
+            those are calibrated against real results. This app organises those numbers, it doesn't replace them.</p>
           <div class="grid">
             <label>Sire <input name="sire" /></label>
             <label>Sire stud fee (USD) <input type="number" name="sireFee" min="0" step="500" /></label>
@@ -225,6 +250,8 @@
         <!-- PERFORMANCE -->
         <div class="card">
           <h2>Performance <span class="hint">leave blank for unraced yearlings</span></h2>
+          <p class="provider-tip">📥 Copy the record and speed figures straight from <em>Brisnet</em>, <em>Equibase</em>
+            or <em>Racing Post</em> — the Beyer/Timeform figure is empirically derived, so record it, don't re-guess it.</p>
           <div class="grid">
             <label>Starts <input type="number" name="pStarts" min="0" /></label>
             <label>Wins <input type="number" name="pWins" min="0" /></label>
@@ -269,6 +296,16 @@
               </select>
             </label>
             <label>Estimated vet/transport cost (USD) <input type="number" name="aVetCost" min="0" step="100" /></label>
+            <label class="full">Sale — for the price sanity check <button type="button" class="info"
+                data-info="Pick the sale (and book/session) this horse is in. We compare your price to that sale's real published median so you can see if it's normal, cheap, or a premium.">ⓘ</button>
+              <select name="saleBenchmark">
+                <option value="">— pick a sale to check the price —</option>
+              </select>
+            </label>
+          </div>
+          <div class="price-sanity-wrap">
+            <h3 class="ps-title">💵 Price sanity check <span class="hint">is this price normal for this sale?</span></h3>
+            <div id="priceSanity"></div>
           </div>
         </div>
 
@@ -488,10 +525,14 @@
     <!-- ============== DATA VIEW ============== -->
     <section id="view-data" class="view">
       <div class="card">
-        <h2>Export</h2>
+        <h2>Export &amp; backup</h2>
+        <p class="data-safety">⚠️ <strong>Your horses live only in this browser</strong> (nothing is sent to a server).
+          Clearing browser data, switching devices, or a lost phone will erase them. Export a JSON backup regularly —
+          it's the only copy you control.</p>
         <p>Download all saved horses as CSV (spreadsheet-ready) or JSON (full backup).</p>
+        <button class="btn primary" id="btnExportJSON">⬇ Export JSON backup</button>
         <button class="btn" id="btnExportCSV">⬇ Export CSV</button>
-        <button class="btn" id="btnExportJSON">⬇ Export JSON</button>
+        <div id="backupStatus" class="backup-status"></div>
       </div>
       <div class="card">
         <h2>Import</h2>
@@ -557,8 +598,15 @@
 
         <h3>Auction / Value</h3>
         <ul>
-          <li>The "Value Score" on the list view = Overall Score ÷ price (in $10k units). It surfaces under-the-radar
-            horses whose quality outpaces their reserve.</li>
+          <li><strong>Price sanity check (recommended).</strong> In the Auction &amp; Price card, pick the sale (and
+            book) your horse is in. The app compares your reserve to that sale's <em>real published median</em> and
+            tells you whether the price is below, within, or above the normal range for that sale — grounded in actual
+            market data, not a formula. It answers "is this price normal <em>for this sale</em>?", not "is it right for
+            <em>this horse</em>" (a standout is worth well above the median; a plain one, well below).</li>
+          <li>The older "Value Score" on the list view = Overall Score ÷ price (in $10k units) — a rough
+            quality-per-dollar ratio. It surfaces cheaper horses whose score outpaces their reserve, but note it
+            structurally favors the lowest-priced horse and is <em>not</em> anchored to comparable sale prices. Prefer
+            the price sanity check above.</li>
         </ul>
 
         <h3>Breeding</h3>
@@ -574,18 +622,33 @@
         <h3>Five Pillars Workflow (Recommended)</h3>
         <ul>
           <li><strong>Score each pillar 1–10</strong> using the rubric in the Five Pillars card.</li>
-          <li><strong>Use Estimated mode</strong> when reviewing historical horses or candidates with incomplete private
-            vet/conformation data.</li>
-          <li><strong>Use Strict verified mode</strong> when you only want scores built from direct entered evidence (no
-            inferred estimates).</li>
-          <li><strong>Interpret outputs</strong>: BUY = strong candidate, SHORTLIST = re-inspect, PASS = risk/value
-            mismatch.</li>
-          <li><strong>Watch Confidence %</strong>: low confidence means you need more direct inputs before final bid
-            decisions.</li>
+          <li><strong>The score rolls up the data YOU entered.</strong> Blank categories are excluded, not counted as
+            zero — so a sparse record can still show a high number off very little information.</li>
+          <li><strong>Interpret the on-paper read as a lean, not a verdict</strong>: it flags where a page looks strong,
+            average, or weak so you know what to dig into with your agent and vet — it is not a bid instruction.</li>
+          <li><strong>Watch "Data filled"</strong>: it tells you how many of the 9 categories you've populated. It is a
+            completeness gauge for your own inputs, <em>not</em> a probability that the horse will run well.</li>
         </ul>
 
-        <p class="disclaimer">This tool is a decision aid, not a substitute for a qualified bloodstock agent and
-          veterinarian. Always vet in person before bidding.</p>
+        <h3>How to read the score honestly</h3>
+        <ul>
+          <li><strong>No score predicts a racehorse.</strong> In published work, even the single best signal available at
+            the yearling stage — the sale price itself, which already bakes in every agent's and vet's opinion —
+            correlates with later race ratings at only about r≈0.36 (explaining ~13% of the variation). Racing ability
+            is also only weakly heritable. A hand-built score cannot beat that ceiling, so treat any number here as a
+            way to <em>organize</em> your read, never as a forecast.</li>
+          <li><strong>The "Value Score" is a rough quality-per-dollar ratio, not true value.</strong> Because it divides
+            the score by price, the cheaper of two similar horses always ranks higher — it does not compare price to
+            what a horse like this <em>should</em> cost. Use it to surface cheap horses worth a second look, not as a
+            statement that a horse is underpriced.</li>
+          <li><strong>Presets are a learning benchmark.</strong> Secretariat, Frankel and Winx score high because their
+            elite race records are entered for them. Seeing your prospect near an all-time great means your <em>inputs</em>
+            resemble theirs on the fields provided — it is a teaching reference, not a claim your horse is in their class.</li>
+        </ul>
+
+        <p class="disclaimer">This tool is a decision aid — a structured notebook for organizing your own judgement —
+          not a predictive model and not a substitute for a qualified bloodstock agent and veterinarian. Always
+          inspect and vet in person before bidding.</p>
       </article>
     </section>
 
@@ -704,7 +767,17 @@
 
         <h3>Key Features</h3>
         <ul class="about-features">
-          <li><strong>Real Horse Presets</strong> — Load verified public-record data for 22 famous horses (Secretariat,
+          <li><strong>Guided read</strong> — The 5 pillars become a live teaching checklist: what to look at, why it
+            matters, your current read, and which fields you still need</li>
+          <li><strong>Learn from the legends</strong> — See why an elite horse's page is elite, in plain language</li>
+          <li><strong>Plain-language glossary</strong> — Every bit of jargon on the form, explained for first-timers</li>
+          <li><strong>Due-diligence report</strong> — One-click printable "bring this to your agent &amp; vet" summary
+            (read, pillars, red flags, price check, pre-bid checklist)</li>
+          <li><strong>Price sanity check</strong> — Compares your reserve to a sale's real published median (13
+            sales/books)</li>
+          <li><strong>Auto-save draft</strong> — Your in-progress horse is saved as you type and offered back next
+            visit</li>
+          <li><strong>Real Horse Presets</strong> — Load verified public-record data for 23 famous horses (Secretariat,
             Frankel, Winx, etc.) with one click</li>
           <li><strong>Live Scoring</strong> — Overall score updates in real time as you fill the form</li>
           <li><strong>Value Score</strong> — Overall Score ÷ price, surfacing quality below market price</li>
@@ -744,7 +817,127 @@
     </div>
   </div>
 
+  <!-- GLOSSARY MODAL -->
+  <div id="glossaryModal" class="modal hidden">
+    <div class="modal-body about-modal-body">
+      <div class="about-header">
+        <span class="logo">📖</span>
+        <div>
+          <h2>Glossary — plain English</h2>
+          <p class="about-sub">Every bit of jargon on this form, explained simply</p>
+        </div>
+        <button class="btn ghost about-close" id="btnCloseGlossary">✕ Close</button>
+      </div>
+
+      <div class="about-content glossary-content">
+        <h3>Pedigree &amp; breeding</h3>
+        <dl>
+          <dt>Sire / Dam / Damsire</dt>
+          <dd>The father, the mother, and the mother's father. The damsire matters because the female
+            family is often the most reliable part of a pedigree.</dd>
+          <dt>AEI — Average Earnings Index</dt>
+          <dd>How much a sire's foals earn compared with an average horse. 1.0 = average, 2.0+ = elite. It's
+            an <em>earnings</em> ratio, so it's inflated by big-money opportunities — a clue, not gospel.</dd>
+          <dt>CI — Comparable Index</dt>
+          <dd>What the sire's mares were already producing <em>before</em> him. Reading AEI next to CI tells you
+            how much credit the sire really deserves.</dd>
+          <dt>Black-type</dt>
+          <dd>Bold/italic names in a sales catalogue — relatives who won or placed in <em>stakes</em> (the best)
+            races. The closer up the page, the stronger the family.</dd>
+          <dt>Nick / nicking</dt>
+          <dd>How well a sire's bloodline has historically "clicked" with the damsire's bloodline, graded A+ down
+            to F. Some crosses produce stakes winners far more often than chance.</dd>
+          <dt>Dosage Index</dt>
+          <dd>A rough speed-vs-stamina number from a horse's key ancestors. ~2–4 leans speed, under 1 leans
+            stamina/turf. Contested and distance-oriented — treat lightly.</dd>
+          <dt>Inbreeding</dt>
+          <dd>The same superior ancestor appearing on both sides (e.g. "3×4"). A little can concentrate quality;
+            a lot raises risk.</dd>
+          <dt>Produce record</dt>
+          <dd>For a mare: the foals she's had and how they ran. A proven producer usually outweighs her own
+            race record.</dd>
+          <dt>Stud fee / Book size</dt>
+          <dd>What a stallion costs to breed to, and how many mares he covers a year. Both are the market's live
+            vote on how good he is.</dd>
+          <dt>Foaling date</dt>
+          <dd>Every Northern-Hemisphere thoroughbred shares a <em>January 1</em> birthday, so a February foal is
+            physically ahead of a May foal early in their careers.</dd>
+        </dl>
+
+        <h3>On the track</h3>
+        <dl>
+          <dt>Starts / Wins / Places</dt>
+          <dd>Races run, races won, and times finishing 2nd or 3rd. Win-and-place rate matters more than raw
+            totals.</dd>
+          <dt>Speed figure (Beyer / Timeform)</dt>
+          <dd>A single number rating how fast a performance actually was, adjusted for track and conditions.
+            ~100 is Grade 1 class; 118+ is historic.</dd>
+          <dt>Class (Grade / Group 1–3, Listed)</dt>
+          <dd>The level of race. Grade/Group 1 is the top; then G2, G3, Listed, then handicaps/allowances, then
+            maidens (for horses yet to win).</dd>
+        </dl>
+
+        <h3>The horse &amp; the vet</h3>
+        <dl>
+          <dt>Conformation</dt>
+          <dd>The horse's physical build — how its frame, limbs and angles are put together. Related to athletic
+            ability, but only weakly, so don't over-weight it.</dd>
+          <dt>The walk</dt>
+          <dd>A free, ground-covering, over-stepping walk is one of the better physical clues that a horse can
+            gallop. Watch it at the barn.</dd>
+          <dt>Repository / x-rays</dt>
+          <dd>A set of pre-sale x-rays (and scopes) the sale company holds. Your <em>own</em> vet reviews them —
+            a serious finding is a hard reason to walk away.</dd>
+          <dt>Scope / laryngeal grade / "wind" / roaring</dt>
+          <dd>A camera check of the throat. Grades III–IV suggest a breathing (airway) problem that can limit a
+            horse — sometimes called "roaring".</dd>
+          <dt>OCD</dt>
+          <dd>A joint/cartilage flaw (osteochondrosis) that shows on x-rays. Some are minor; some need surgery.</dd>
+          <dt>Cannon / pastern / hock</dt>
+          <dd>Lower-leg parts vets and buyers scrutinise: the cannon should be short and dense, pasterns
+            angled ~45–50°, the hock (the "knee" of the hind leg) strong and correct.</dd>
+        </dl>
+
+        <h3>At the sale</h3>
+        <dl>
+          <dt>Hip / Lot number</dt>
+          <dd>The horse's number in the catalogue and the order it sells in — the sticker is literally on its hip.</dd>
+          <dt>Reserve / RNA</dt>
+          <dd>The minimum the seller will accept. "RNA" (Reserve Not Attained) means it didn't reach that and
+            stayed unsold.</dd>
+          <dt>Consignor</dt>
+          <dd>The seller/agent presenting the horse at the sale. A top consignor's prep and honesty carry weight.</dd>
+          <dt>Pinhook</dt>
+          <dd>Buying a young horse to resell at a profit later (e.g. a weanling to sell as a yearling). A
+            speculative business — fewer than half turn a profit.</dd>
+          <dt>Value Score (this app)</dt>
+          <dd>Overall score ÷ price — a rough quality-per-dollar ratio. Handy for surfacing cheaper horses, but it
+            structurally favours the lowest price, so sanity-check it against real sale prices.</dd>
+          <dt>Price sanity check (this app)</dt>
+          <dd>Compares your reserve to the <em>real published median</em> for the sale you pick, and tells you whether
+            the price is below, within, or above the normal range for that sale. Grounded in actual market data — it's
+            about the sale, not a verdict on the individual horse.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- DUE-DILIGENCE REPORT MODAL -->
+  <div id="reportModal" class="modal hidden">
+    <div class="modal-body report-modal-body">
+      <div class="report-toolbar no-print">
+        <span class="report-toolbar-title">📋 Due-diligence report</span>
+        <div class="report-toolbar-actions">
+          <button class="btn primary" id="btnPrintReport">🖨 Print / Save as PDF</button>
+          <button class="btn ghost" id="btnCloseReport">✕ Close</button>
+        </div>
+      </div>
+      <div id="reportContent"></div>
+    </div>
+  </div>
+
   <script src="presets.js"></script>
+  <script src="sales-data.js"></script>
   <script src="app.js"></script>
   <script>
     if('serviceWorker' in navigator) {
